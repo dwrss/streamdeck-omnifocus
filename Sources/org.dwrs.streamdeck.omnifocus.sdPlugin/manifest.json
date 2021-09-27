@@ -10,6 +10,20 @@
           "FontStyle": "Bold",
           "TitleAlignment": "middle",
           "TitleColor": "#ffffff"
+        },
+        {
+          "Image": "OmniFocus_inbox",
+          "FontSize": "18",
+          "FontStyle": "Bold",
+          "TitleAlignment": "middle",
+          "TitleColor": "#ffffff"
+        },
+        {
+          "Image": "omnifocus_forecast_long",
+          "FontSize": "18",
+          "FontStyle": "Bold",
+          "TitleAlignment": "middle",
+          "TitleColor": "#ffffff"
         }
       ],
       "Tooltip": "See how many due tasks you have.",
