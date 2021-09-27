@@ -1,8 +1,8 @@
 {
-  "Description": "Scopri quante azione hai nel Bollettino.", 
+  "Description": "Scopri quante azione hai nell Bollettino.", 
   "Name": "OmniFocus",
   "org.dwrs.streamdeck.omnifocus.action": {
     "Name": "OmniFocus",
-    "Tooltip": "Scopri quante azione hai nel Bollettino."
+    "Tooltip": "Scopri quante azione hai nell Bollettino."
   }
 }
