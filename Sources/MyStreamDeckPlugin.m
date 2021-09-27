@@ -206,7 +206,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 	NSAppleScript *appleScript = [[NSAppleScript alloc] initWithContentsOfURL:url error:&errors];
 	if (appleScript != nil) {
 		NSAppleEventDescriptor *eventDescriptor = [appleScript executeAndReturnError:&errors];
-		if(eventDescriptor != nil && [eventDescriptor descriptorType] != kAENullEvent) {
+		if (eventDescriptor != nil && [eventDescriptor descriptorType] != kAENullEvent) {
 			numberOfDueTasks = (int)[eventDescriptor int32Value];
             if (numberOfDueTasks == 0) {
                 NSString *logString = [NSString stringWithFormat:@"Error converting '%@' to int", eventDescriptor.stringValue];
@@ -280,6 +280,13 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 {
 	// Remove the context from the list of known contexts
 	[self.knownContexts removeObject:context];
+    if ([self.knownContexts count] == 0) {
+        // Remove stored state for the action
+        [self.actionStates removeObjectForKey:action];
+        // If we're not active in any known contexts, invalidate the timer
+        [self.refreshTimer invalidate];
+        [self.connectionManager logMessage:[NSString stringWithFormat:@"No remaining contexts for action: %@", action]];
+    }
 }
 
 - (void)deviceDidConnect:(NSString *)deviceID withDeviceInfo:(NSDictionary *)deviceInfo
@@ -298,13 +305,17 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 		
 		// Explicitely refresh the number of due tasks
 		[self refreshDueCount];
+        // We invalidate the timer when the application terminates, so run setup again
+        [self setupIfNeeded];
 	}
 }
 
 - (void)applicationDidTerminate:(NSDictionary *)applicationInfo {
-	if([applicationInfo[@kESDSDKPayloadApplication] isEqualToString:OMNIFOCUS_BUNDLE_ID]) {
-		self.isOmniFocusRunning = NO;
-	}
+    if([applicationInfo[@kESDSDKPayloadApplication] isEqualToString:OMNIFOCUS_BUNDLE_ID]) {
+        self.isOmniFocusRunning = NO;
+        // Omnifocus isn't running, so we can stop the refresh timer
+        [self.refreshTimer invalidate];
+    }
 }
 
 @end
