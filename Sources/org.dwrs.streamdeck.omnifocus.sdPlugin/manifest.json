@@ -12,7 +12,7 @@
           "TitleColor": "#ffffff"
         }
       ],
-      "Tooltip": "See how many unread emails you have",
+      "Tooltip": "See how many due tasks you have.",
       "UUID": "org.dwrs.streamdeck.omnifocus.action"
     }
   ],
