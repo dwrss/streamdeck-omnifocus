@@ -222,22 +222,16 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
     NSNumber *currentState = [self.actionStates objectForKey:@ACTID_DUE_TASKS];
 	// Update each known context with the new value
 	for (NSString *context in self.knownContexts) {
-        if (numberOfDueTasks > 9) {
-            if (currentState.intValue != 2) {
-                [self setStateToNumber:[NSNumber numberWithInt:2] forAction:@ACTID_DUE_TASKS inContext:context];
-            }
-        } else if (numberOfDueTasks > 0) {
-            if (currentState.intValue != 1) {
-                [self setStateToNumber:[NSNumber numberWithInt:1] forAction:@ACTID_DUE_TASKS inContext:context];
-            }
-		} else if (numberOfDueTasks == 0) {
-            if (currentState.intValue != 0) {
-                [self setStateToNumber:[NSNumber numberWithInt:0] forAction:@ACTID_DUE_TASKS inContext:context];
-            }
-		} else {
+        if (numberOfDueTasks > 9 && currentState.intValue != 2) {
+            [self setStateToNumber:[NSNumber numberWithInt:2] forAction:@ACTID_DUE_TASKS inContext:context];
+        } else if (numberOfDueTasks > 0 && currentState.intValue != 1) {
+            [self setStateToNumber:[NSNumber numberWithInt:1] forAction:@ACTID_DUE_TASKS inContext:context];
+        } else if (numberOfDueTasks == 0 && currentState.intValue != 0) {
             [self setStateToNumber:[NSNumber numberWithInt:0] forAction:@ACTID_DUE_TASKS inContext:context];
-			[self.connectionManager showAlertForContext:context];
-		}
+        } else {
+            [self setStateToNumber:[NSNumber numberWithInt:0] forAction:@ACTID_DUE_TASKS inContext:context];
+            [self.connectionManager showAlertForContext:context];
+        }
         [self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
 	}
 }
