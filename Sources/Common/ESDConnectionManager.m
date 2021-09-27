@@ -225,30 +225,37 @@
 	}
 }
 
--(void)setState:(NSNumber *)inState forContext:(id)inContext
+-(BOOL)setState:(NSNumber * _Nonnull)inState forContext:(id _Nonnull)inContext error:(NSError **)errorPtr
 {
-	if(inState != nil && inContext != nil)
-	{
-		NSDictionary *json = @{
-				   @kESDSDKCommonEvent: @kESDSDKEventSetState,
-				   @kESDSDKCommonContext: inContext,
-				   @kESDSDKCommonPayload: @{
-				   		@kESDSDKPayloadState: inState
-					}
-				   };
-		
-		NSError *err = nil;
-		NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:NSJSONWritingPrettyPrinted error:&err];
-		if (err == nil)
-		{
-			NSError *error = nil;
-			[self.socket sendData:jsonData error:&error];
-			if(error != nil)
-			{
-				NSLog(@"Failed to change the state due to error %@", error);
-			}
-		}
-	}
+    if(inState == nil) {
+        [NSException raise:NSInvalidArgumentException format:@"inState must not be nil"];
+    }
+    if(inContext == nil) {
+        [NSException raise:NSInvalidArgumentException format:@"inContext must not be nil"];
+    }
+    NSDictionary *json = @{
+        @kESDSDKCommonEvent: @kESDSDKEventSetState,
+        @kESDSDKCommonContext: inContext,
+        @kESDSDKCommonPayload: @{
+                @kESDSDKPayloadState: inState
+        }
+    };
+    
+    NSError *err = nil;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:NSJSONWritingPrettyPrinted error:&err];
+    if (err != nil) {
+        *errorPtr = err;
+        return NO;
+    }
+    NSError *error = nil;
+    [self.socket sendData:jsonData error:&error];
+    if(error != nil)
+    {
+        NSLog(@"Failed to change the state due to error %@", error);
+        *errorPtr = error;
+        return NO;
+    }
+    return YES;
 }
 
 -(void)logMessage:(NSString *)inMessage

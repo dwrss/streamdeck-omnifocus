@@ -243,8 +243,13 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 	}
 }
 
-- (void)setStateToNumber:(NSNumber *)number forAction:(NSString *)key inContext:(NSString *)context {
-    [self.connectionManager setState:number forContext:context];
+- (void)setStateToNumber:(NSNumber * _Nonnull)number forAction:(NSString *)key inContext:(NSString *)context {
+    NSError *error = nil;
+    BOOL success = [self.connectionManager setState:number forContext:context error:&error];
+    if (!success) {
+        [self.connectionManager logMessage:[NSString stringWithFormat:@"Error setting state: '%@'", error]];
+        return;
+    }
     [self.actionStates setObject:number forKey:key];
 }
 

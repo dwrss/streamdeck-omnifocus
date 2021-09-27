@@ -33,7 +33,7 @@ NS_ASSUME_NONNULL_BEGIN
 -(void)showAlertForContext:(id)inContext;
 -(void)showOKForContext:(id)inContext;
 -(void)setSettings:(NSDictionary *)inSettings forContext:(id)inContext;
--(void)setState:(NSNumber *)inState forContext:(id)inContext;
+-(BOOL)setState:(NSNumber * _Nonnull)inState forContext:(id _Nonnull)inContext error:(NSError **)errorPtr;
 -(void)logMessage:(NSString *)inMessage;
 
 @end
