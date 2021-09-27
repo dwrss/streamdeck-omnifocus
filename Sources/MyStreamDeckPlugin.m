@@ -264,18 +264,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 
 - (void)keyDownForAction:(NSString *)action withContext:(id)context withPayload:(NSDictionary *)payload forDevice:(NSString *)deviceID {
 	// On key press, open OmniFocus
-	NSURL *url = [NSURL fileURLWithPath:GetResourcePath(@"OpenOmniFocus.scpt")];
-	
-	NSDictionary *errors = nil;
-	NSAppleScript *appleScript = [[NSAppleScript alloc] initWithContentsOfURL:url error:&errors];
-	if (appleScript != nil) {
-        NSAppleEventDescriptor *openResult = [appleScript executeAndReturnError:&errors];
-        if (openResult == nil) {
-            [self.connectionManager logMessage:[NSString stringWithFormat:@"Error opening OmniFocus: %@", errors]];
-        }
-    } else {
-        [self.connectionManager logMessage:[NSString stringWithFormat:@"Error initialising OpenOmniFocus.scpt: %@", errors]];
-    }
+    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"omnifocus:///forecast"]];
 }
 
 - (void)keyUpForAction:(NSString *)action withContext:(id)context withPayload:(NSDictionary *)payload forDevice:(NSString *)deviceID
