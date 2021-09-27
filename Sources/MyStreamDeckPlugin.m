@@ -160,15 +160,6 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 // The list of visible contexts
 @property (strong) NSMutableArray *knownContexts;
 
-// The OmniFocus icon encoded in base64
-@property (strong) NSString *base64OmniFocusIconString;
-
-// The OmniFocus icon with a badge encoded in base64
-@property (strong) NSString *base64OmniFocusBadgeIconString;
-
-// The OmniFocus icon with a badge encoded in base64
-@property (strong) NSString *base64OmniFocusLongBadgeIconString;
-
 @end
 
 
@@ -191,22 +182,6 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 	{
         self.refreshTimer = [NSTimer scheduledTimerWithTimeInterval:REFRESH_DUE_COUNT_TIME_INTERVAL target:self selector:@selector(refreshDueCount) userInfo:nil repeats:YES];
 	}
-	
-	if(self.base64OmniFocusIconString == nil)
-	{
-        self.base64OmniFocusIconString = CreateBase64EncodedString(GetResourcePath(@"OmniFocus.png"));
-	}
-	
-	if(self.base64OmniFocusBadgeIconString == nil)
-	{
-        self.base64OmniFocusBadgeIconString = CreateBase64EncodedString(GetResourcePath(@"OmniFocus_inbox.png"));
-	}
-    
-    
-    if(self.base64OmniFocusLongBadgeIconString == nil)
-    {
-        self.base64OmniFocusLongBadgeIconString = CreateBase64EncodedString(GetResourcePath(@"omnifocus_forecast_long.png"));
-    }
 }
 
 
@@ -242,19 +217,16 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 	// Update each known context with the new value
 	for (NSString *context in self.knownContexts) {
         if (numberOfDueTasks > 9) {
-            [self.connectionManager setImage:self.base64OmniFocusLongBadgeIconString withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
-            [self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
+            [self.connectionManager setState:[NSNumber numberWithInt:2] forContext:context];
         } else if (numberOfDueTasks > 0) {
-			[self.connectionManager setImage:self.base64OmniFocusBadgeIconString withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
-			[self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
+            [self.connectionManager setState:[NSNumber numberWithInt:1] forContext:context];
 		} else if (numberOfDueTasks == 0) {
-			[self.connectionManager setImage:self.base64OmniFocusIconString withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
-			[self.connectionManager setTitle:@"" withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
+            [self.connectionManager setState:[NSNumber numberWithInt:0] forContext:context];
 		} else {
-			[self.connectionManager setImage:self.base64OmniFocusIconString withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
-			[self.connectionManager setTitle:nil withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
+            [self.connectionManager setState:[NSNumber numberWithInt:0] forContext:context];
 			[self.connectionManager showAlertForContext:context];
 		}
+        [self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
 	}
 }
 
