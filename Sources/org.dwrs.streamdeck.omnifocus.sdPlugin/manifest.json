@@ -22,7 +22,7 @@
   "Description": "See how many due tasks you have.",
   "Name": "OmniFocus",
   "Icon": "OmniFocus",
-  "URL": "https://www.elgato.com/gaming/stream-deck", 
+  "URL": "https://github.com/dwrss/streamdeck-omnifocus/", 
   "Version": "1.0.1",
   "OS": [
     {
