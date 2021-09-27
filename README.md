@@ -19,7 +19,7 @@
 
 # Installation
 
-In the Release folder, you can find the file `org.dwrs.streamdeck.omnifocus.streamDeckPlugin`. If you double-click this file on your machine, Stream Deck will install the plugin.
+Download the [latest release](https://github.com/dwrss/streamdeck-omnifocus/releases/latest).
 
 
 # Source code
