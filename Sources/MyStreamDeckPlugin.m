@@ -164,6 +164,8 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 // The current state for each visible action
 @property (strong) NSMutableDictionary *actionStates;
 
+@property (strong) NSAppleScript *numberOfDueTasksScript;
+
 @end
 
 
@@ -186,6 +188,14 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 	{
         self.refreshTimer = [NSTimer scheduledTimerWithTimeInterval:REFRESH_DUE_COUNT_TIME_INTERVAL target:self selector:@selector(refreshDueCount) userInfo:nil repeats:YES];
 	}
+    if (self.numberOfDueTasksScript == nil) {
+        NSURL* url = [NSURL fileURLWithPath:GetResourcePath(@"NumberOfDueTasks.scpt")];
+        NSDictionary *errors = nil;
+        self.numberOfDueTasksScript = [[NSAppleScript alloc] initWithContentsOfURL:url error:&errors];
+        if (self.numberOfDueTasksScript == nil) {
+            [self.connectionManager logMessage:[NSString stringWithFormat:@"Error loading NumberOfDueTasks.scpt: %@", errors]];
+        }
+    }
 }
 
 
@@ -199,12 +209,10 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 	
 	// Execute the NumberOfUnreadMails.scpt Applescript to retrieve the number of due tasks
 	int numberOfDueTasks = -1;
-	NSURL* url = [NSURL fileURLWithPath:GetResourcePath(@"NumberOfDueTasks.scpt")];
 	
 	NSDictionary *errors = nil;
-	NSAppleScript *appleScript = [[NSAppleScript alloc] initWithContentsOfURL:url error:&errors];
-	if (appleScript != nil) {
-		NSAppleEventDescriptor *eventDescriptor = [appleScript executeAndReturnError:&errors];
+	if (self.numberOfDueTasksScript != nil) {
+		NSAppleEventDescriptor *eventDescriptor = [self.numberOfDueTasksScript executeAndReturnError:&errors];
 		if (eventDescriptor != nil && [eventDescriptor descriptorType] != kAENullEvent) {
 			numberOfDueTasks = (int)[eventDescriptor int32Value];
             if (numberOfDueTasks == 0) {
@@ -215,7 +223,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
             [self.connectionManager logMessage:[NSString stringWithFormat:@"Error running NumberOfDueTasks.scpt: %@", errors]];
         }
     } else {
-        [self.connectionManager logMessage:[NSString stringWithFormat:@"Error loading NumberOfDueTasks.scpt: %@", errors]];
+        [self setupIfNeeded];
     }
 	
     NSNumber *currentState = [self.actionStates objectForKey:ACTID_DUE_TASKS];
