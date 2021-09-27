@@ -6,27 +6,27 @@
       "States": [
         {
           "Image": "OmniFocus",
-          "FontSize": "18", 
-          "FontStyle": "Bold", 
-          "TitleAlignment": "middle", 
+          "FontSize": "18",
+          "FontStyle": "Bold",
+          "TitleAlignment": "middle",
           "TitleColor": "#ffffff"
         }
-      ], 
-      "Tooltip": "See how many unread emails you have", 
+      ],
+      "Tooltip": "See how many unread emails you have",
       "UUID": "org.dwrs.streamdeck.omnifocus.action"
     }
-  ], 
+  ],
   "SDKVersion": 2,
   "Author": "David Stephens",
   "CodePath": "OmniFocus",
   "Description": "See how many due tasks you have.",
   "Name": "OmniFocus",
   "Icon": "OmniFocus",
-  "URL": "https://github.com/dwrss/streamdeck-omnifocus/", 
-  "Version": "1.0.1",
+  "URL": "https://github.com/dwrss/streamdeck-omnifocus/",
+  "Version": "1.0.2",
   "OS": [
     {
-        "Platform": "mac", 
+        "Platform": "mac",
         "MinimumVersion" : "10.11"
     }
   ],
@@ -35,7 +35,7 @@
 		"com.omnigroup.OmniFocus3"
 	]
   },
-  "Software": 
+  "Software":
     {
         "MinimumVersion" : "4.1"
     }
