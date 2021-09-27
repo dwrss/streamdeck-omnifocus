@@ -31,6 +31,8 @@
 // Size of the images
 #define IMAGE_SIZE	144
 
+#define ACTID_DUE_TASKS "org.dwrs.streamdeck.omnifocus.action"
+
 static NSString * const OMNIFOCUS_BUNDLE_ID = @"com.omnigroup.OmniFocus3";
 
 // MARK: - Utility methods
@@ -160,6 +162,9 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 // The list of visible contexts
 @property (strong) NSMutableArray *knownContexts;
 
+// The current state for each visible action
+@property (strong) NSMutableDictionary *actionStates;
+
 @end
 
 
@@ -214,20 +219,32 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
         [self.connectionManager logMessage:[NSString stringWithFormat:@"Error loading NumberOfDueTasks.scpt: %@", errors]];
     }
 	
+    NSNumber *currentState = [self.actionStates objectForKey:@ACTID_DUE_TASKS];
 	// Update each known context with the new value
 	for (NSString *context in self.knownContexts) {
         if (numberOfDueTasks > 9) {
-            [self.connectionManager setState:[NSNumber numberWithInt:2] forContext:context];
+            if (currentState.intValue != 2) {
+                [self setStateToNumber:[NSNumber numberWithInt:2] forAction:@ACTID_DUE_TASKS inContext:context];
+            }
         } else if (numberOfDueTasks > 0) {
-            [self.connectionManager setState:[NSNumber numberWithInt:1] forContext:context];
+            if (currentState.intValue != 1) {
+                [self setStateToNumber:[NSNumber numberWithInt:1] forAction:@ACTID_DUE_TASKS inContext:context];
+            }
 		} else if (numberOfDueTasks == 0) {
-            [self.connectionManager setState:[NSNumber numberWithInt:0] forContext:context];
+            if (currentState.intValue != 0) {
+                [self setStateToNumber:[NSNumber numberWithInt:0] forAction:@ACTID_DUE_TASKS inContext:context];
+            }
 		} else {
-            [self.connectionManager setState:[NSNumber numberWithInt:0] forContext:context];
+            [self setStateToNumber:[NSNumber numberWithInt:0] forAction:@ACTID_DUE_TASKS inContext:context];
 			[self.connectionManager showAlertForContext:context];
 		}
         [self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
 	}
+}
+
+- (void)setStateToNumber:(NSNumber *)number forAction:(NSString *)key inContext:(NSString *)context {
+    [self.connectionManager setState:number forContext:context];
+    [self.actionStates setObject:number forKey:key];
 }
 
 
@@ -250,9 +267,19 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 	
 	// Add the context to the list of known contexts
 	[self.knownContexts addObject:context];
+    
+    NSNumber *state = (NSNumber *)[payload objectForKey:@kESDSDKPayloadState];
+    if (state != nil) {
+        [self.actionStates setObject:state forKey:action];
+    } else {
+        // If we weren't passed a state, make sure we don't have an invalid one lying around
+        [self.actionStates removeObjectForKey:action];
+    }
 	
-	// Explicitely refresh the number of unread emails
-	[self refreshDueCount];
+    if ([action isEqualToString:@ACTID_DUE_TASKS]) {
+        // Explicitely refresh the number of unread emails
+        [self refreshDueCount];
+    }
 }
 
 - (void)willDisappearForAction:(NSString *)action withContext:(id)context withPayload:(NSDictionary *)payload forDevice:(NSString *)deviceID
