@@ -31,9 +31,8 @@
 // Size of the images
 #define IMAGE_SIZE	144
 
-#define ACTID_DUE_TASKS "org.dwrs.streamdeck.omnifocus.action"
-
 static NSString * const OMNIFOCUS_BUNDLE_ID = @"com.omnigroup.OmniFocus3";
+static NSString * const ACTID_DUE_TASKS = @"org.dwrs.streamdeck.omnifocus.action";
 
 // MARK: - Utility methods
 
@@ -219,17 +218,17 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
         [self.connectionManager logMessage:[NSString stringWithFormat:@"Error loading NumberOfDueTasks.scpt: %@", errors]];
     }
 	
-    NSNumber *currentState = [self.actionStates objectForKey:@ACTID_DUE_TASKS];
+    NSNumber *currentState = [self.actionStates objectForKey:ACTID_DUE_TASKS];
 	// Update each known context with the new value
 	for (NSString *context in self.knownContexts) {
         if (numberOfDueTasks > 9 && currentState.intValue != 2) {
-            [self setStateToNumber:[NSNumber numberWithInt:2] forAction:@ACTID_DUE_TASKS inContext:context];
+            [self setStateToNumber:[NSNumber numberWithInt:2] forAction:ACTID_DUE_TASKS inContext:context];
         } else if (numberOfDueTasks > 0 && currentState.intValue != 1) {
-            [self setStateToNumber:[NSNumber numberWithInt:1] forAction:@ACTID_DUE_TASKS inContext:context];
+            [self setStateToNumber:[NSNumber numberWithInt:1] forAction:ACTID_DUE_TASKS inContext:context];
         } else if (numberOfDueTasks == 0 && currentState.intValue != 0) {
-            [self setStateToNumber:[NSNumber numberWithInt:0] forAction:@ACTID_DUE_TASKS inContext:context];
+            [self setStateToNumber:[NSNumber numberWithInt:0] forAction:ACTID_DUE_TASKS inContext:context];
         } else {
-            [self setStateToNumber:[NSNumber numberWithInt:0] forAction:@ACTID_DUE_TASKS inContext:context];
+            [self setStateToNumber:[NSNumber numberWithInt:0] forAction:ACTID_DUE_TASKS inContext:context];
             [self.connectionManager showAlertForContext:context];
         }
         [self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
@@ -270,7 +269,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
         [self.actionStates removeObjectForKey:action];
     }
 	
-    if ([action isEqualToString:@ACTID_DUE_TASKS]) {
+    if ([action isEqualToString:ACTID_DUE_TASKS]) {
         // Explicitely refresh the number of unread emails
         [self refreshDueCount];
     }
