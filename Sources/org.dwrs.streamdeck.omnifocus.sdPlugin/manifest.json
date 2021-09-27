@@ -1,0 +1,42 @@
+{
+  "Actions": [
+    {
+      "Icon": "OmniFocus",
+      "Name": "OmniFocus",
+      "States": [
+        {
+          "Image": "OmniFocus",
+          "FontSize": "18", 
+          "FontStyle": "Bold", 
+          "TitleAlignment": "middle", 
+          "TitleColor": "#ffffff"
+        }
+      ], 
+      "Tooltip": "See how many unread emails you have", 
+      "UUID": "org.dwrs.streamdeck.omnifocus.action"
+    }
+  ], 
+  "SDKVersion": 2,
+  "Author": "David Stephens",
+  "CodePath": "OmniFocus",
+  "Description": "See how many due tasks you have.",
+  "Name": "OmniFocus",
+  "Icon": "OmniFocus",
+  "URL": "https://www.elgato.com/gaming/stream-deck", 
+  "Version": "1.0.1",
+  "OS": [
+    {
+        "Platform": "mac", 
+        "MinimumVersion" : "10.11"
+    }
+  ],
+  "ApplicationsToMonitor": {
+  	"mac": [
+		"com.omnigroup.OmniFocus3"
+	]
+  },
+  "Software": 
+    {
+        "MinimumVersion" : "4.1"
+    }
+}

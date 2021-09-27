@@ -1,0 +1,8 @@
+{
+  "Description": "See how many due tasks you have.",
+  "Name": "OmniFocus",
+  "org.dwrs.streamdeck.omnifocus.action": {
+    "Name": "OmniFocus",
+    "Tooltip": "See how many due tasks you have"
+  }
+}
