@@ -1,8 +1,8 @@
 {
-  "Description": "Consultez le nombre d’e-mails non lus.", 
-  "Name": "Apple Mail", 
-  "com.elgato.applemail.action": {
-    "Name": "Apple Mail", 
-    "Tooltip": "Consultez le nombre d’e-mails non lus"
+  "Description": "Consultez le nombre des actions à venir.", 
+  "Name": "OmniFocus",
+  "org.dwrs.streamdeck.omnifocus.action": {
+    "Name": "OmniFocus",
+    "Tooltip": "Consultez le nombre des actions à venir."
   }
 }
