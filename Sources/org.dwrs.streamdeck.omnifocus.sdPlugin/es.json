@@ -1,8 +1,8 @@
 {
-  "Description": "Averigua cuántos correos tienes sin leer.", 
-  "Name": "Aplicación Mail de Apple", 
-  "com.elgato.applemail.action": {
-    "Name": "Aplicación Mail de Apple", 
-    "Tooltip": "Averigua cuántos correos tienes sin leer"
+  "Description": "Averigua cuántos acciónes tienes en la Previsión.", 
+  "Name": "OmniFocus",
+  "org.dwrs.streamdeck.omnifocus.action": {
+    "Name": "OmniFocus",
+    "Tooltip": "Averigua cuántos acciónes tienes en la Previsión."
   }
 }
