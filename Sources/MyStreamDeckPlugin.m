@@ -215,7 +215,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 		NSAppleEventDescriptor *eventDescriptor = [self.numberOfDueTasksScript executeAndReturnError:&errors];
 		if (eventDescriptor != nil && [eventDescriptor descriptorType] != kAENullEvent) {
 			numberOfDueTasks = (int)[eventDescriptor int32Value];
-            if (numberOfDueTasks == 0) {
+            if (numberOfDueTasks == 0 && ![eventDescriptor.stringValue isEqualToString: @"0"]) {
                 NSString *logString = [NSString stringWithFormat:@"Error converting '%@' to int", eventDescriptor.stringValue];
                 [self.connectionManager logMessage:logString];
             }
@@ -231,15 +231,20 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 	for (NSString *context in self.knownContexts) {
         if (numberOfDueTasks > 9 && currentState.intValue != 2) {
             [self setStateToNumber:[NSNumber numberWithInt:2] forAction:ACTID_DUE_TASKS inContext:context];
+            [self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
         } else if (numberOfDueTasks > 0 && currentState.intValue != 1) {
             [self setStateToNumber:[NSNumber numberWithInt:1] forAction:ACTID_DUE_TASKS inContext:context];
-        } else if (numberOfDueTasks == 0 && currentState.intValue != 0) {
-            [self setStateToNumber:[NSNumber numberWithInt:0] forAction:ACTID_DUE_TASKS inContext:context];
+            [self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
         } else {
-            [self setStateToNumber:[NSNumber numberWithInt:0] forAction:ACTID_DUE_TASKS inContext:context];
-            [self.connectionManager showAlertForContext:context];
+            if (currentState.intValue != 0) {
+                [self setStateToNumber:[NSNumber numberWithInt:0] forAction:ACTID_DUE_TASKS inContext:context];
+            }
+            if (numberOfDueTasks != 0) {
+                [self.connectionManager logMessage:[NSString stringWithFormat:@"Unexpected number of tasks: %d", numberOfDueTasks]];
+                [self.connectionManager showAlertForContext:context];
+            }
+            [self.connectionManager setTitle:nil withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
         }
-        [self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
 	}
 }
 
