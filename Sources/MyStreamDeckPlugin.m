@@ -273,7 +273,14 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 
 - (void)keyUpForAction:(NSString *)action withContext:(id)context withPayload:(NSDictionary *)payload forDevice:(NSString *)deviceID
 {
-	// Nothing to do
+    // Pressing the button changes the state, so we update our local storage
+    NSNumber *state = (NSNumber *)[payload objectForKey:@kESDSDKPayloadState];
+    [self storeStateNumber:state forAction:action];
+    
+    if ([action isEqualToString:ACTID_DUE_TASKS]) {
+        // Make sure the due count is up-to-date
+        [self refreshDueCount];
+    }
 }
 
 - (void)willAppearForAction:(NSString *)action withContext:(id)context withPayload:(NSDictionary *)payload forDevice:(NSString *)deviceID {
@@ -292,7 +299,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
     }
 	
     if ([action isEqualToString:ACTID_DUE_TASKS]) {
-        // Explicitely refresh the number of unread emails
+        // Explicitely refresh the number of due tasks
         [self refreshDueCount];
     }
 }
