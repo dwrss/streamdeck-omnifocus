@@ -226,23 +226,16 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
         [self setupIfNeeded];
     }
 	
-    NSNumber *currentState = [self.actionStates objectForKey:ACTID_DUE_TASKS];
 	// Update each known context with the new value
 	for (NSString *context in self.knownContexts) {
         if (numberOfDueTasks > 9) {
-            if ((!currentState || [currentState intValue] != 2)) {
-                [self setStateToNumber:[NSNumber numberWithInt:2] forAction:ACTID_DUE_TASKS inContext:context];
-            }
+            [self setStateToNumber:[NSNumber numberWithInt:2] forAction:ACTID_DUE_TASKS inContext:context];
             [self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
         } else if (numberOfDueTasks > 0) {
-            if ((!currentState || [currentState intValue] != 1)) {
-                [self setStateToNumber:[NSNumber numberWithInt:1] forAction:ACTID_DUE_TASKS inContext:context];
-            }
+            [self setStateToNumber:[NSNumber numberWithInt:1] forAction:ACTID_DUE_TASKS inContext:context];
             [self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
         } else {
-            if (currentState == nil || [currentState intValue] != 0) {
-                [self setStateToNumber:[NSNumber numberWithInt:0] forAction:ACTID_DUE_TASKS inContext:context];
-            }
+            [self setStateToNumber:[NSNumber numberWithInt:0] forAction:ACTID_DUE_TASKS inContext:context];
             if (numberOfDueTasks != 0) {
                 [self.connectionManager logMessage:[NSString stringWithFormat:@"Unexpected number of tasks: %d", numberOfDueTasks]];
                 [self.connectionManager showAlertForContext:context];
@@ -253,13 +246,27 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 }
 
 - (void)setStateToNumber:(NSNumber * _Nonnull)number forAction:(NSString *)key inContext:(NSString *)context {
+    NSNumber *currentState = [self.actionStates objectForKey:ACTID_DUE_TASKS];
+    // No need to update when the new state matches out local state
+    if (currentState && [currentState intValue] == [number intValue]) {
+        return;
+    }
     NSError *error = nil;
     BOOL success = [self.connectionManager setState:number forContext:context error:&error];
     if (!success) {
         [self.connectionManager logMessage:[NSString stringWithFormat:@"Error setting state: '%@'", error]];
         return;
     }
-    [self.actionStates setObject:number forKey:key];
+    [self storeStateNumber:number forAction:key];
+}
+
+- (void)storeStateNumber:(nullable NSNumber *)stateNumber forAction:(NSString *)action {
+    if (stateNumber != nil) {
+        [self.actionStates setObject:stateNumber forKey:action];
+    } else {
+        // If we weren't passed a state, make sure we don't have an invalid one lying around
+        [self.actionStates removeObjectForKey:action];
+    }
 }
 
 
@@ -290,13 +297,9 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 	// Add the context to the list of known contexts
 	[self.knownContexts addObject:context];
     
+    // Ensure our action state is up-to-date
     NSNumber *state = (NSNumber *)[payload objectForKey:@kESDSDKPayloadState];
-    if (state != nil) {
-        [self.actionStates setObject:state forKey:action];
-    } else {
-        // If we weren't passed a state, make sure we don't have an invalid one lying around
-        [self.actionStates removeObjectForKey:action];
-    }
+    [self storeStateNumber:state forAction:action];
 	
     if ([action isEqualToString:ACTID_DUE_TASKS]) {
         // Explicitely refresh the number of due tasks
