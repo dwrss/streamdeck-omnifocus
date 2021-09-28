@@ -185,7 +185,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
         self.knownContexts = [[NSMutableArray alloc] init];
 	}
 	
-	// Create a timer to repetivily update the actions
+	// Create a timer to repetitively update the actions
 	if(![[self refreshTimer] isValid])
 	{
         self.refreshTimer = [NSTimer scheduledTimerWithTimeInterval:REFRESH_DUE_COUNT_TIME_INTERVAL target:self selector:@selector(refreshDueCount) userInfo:nil repeats:YES];
@@ -341,7 +341,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 	if([applicationInfo[@kESDSDKPayloadApplication] isEqualToString:OMNIFOCUS_BUNDLE_ID]) {
 		self.isOmniFocusRunning = YES;
 		
-		// Explicitely refresh the number of due tasks
+		// Explicitly refresh the number of due tasks
 		[self refreshDueCount];
         // We invalidate the timer when the application terminates, so run setup again
         [self setupIfNeeded];
