@@ -229,21 +229,25 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
     NSNumber *currentState = [self.actionStates objectForKey:ACTID_DUE_TASKS];
 	// Update each known context with the new value
 	for (NSString *context in self.knownContexts) {
-        if (numberOfDueTasks > 9 && currentState.intValue != 2) {
-            [self setStateToNumber:[NSNumber numberWithInt:2] forAction:ACTID_DUE_TASKS inContext:context];
+        if (numberOfDueTasks > 9) {
+            if ((!currentState || [currentState intValue] != 2)) {
+                [self setStateToNumber:[NSNumber numberWithInt:2] forAction:ACTID_DUE_TASKS inContext:context];
+            }
             [self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
-        } else if (numberOfDueTasks > 0 && currentState.intValue != 1) {
-            [self setStateToNumber:[NSNumber numberWithInt:1] forAction:ACTID_DUE_TASKS inContext:context];
+        } else if (numberOfDueTasks > 0) {
+            if ((!currentState || [currentState intValue] != 1)) {
+                [self setStateToNumber:[NSNumber numberWithInt:1] forAction:ACTID_DUE_TASKS inContext:context];
+            }
             [self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
         } else {
-            if (currentState.intValue != 0) {
+            if (currentState == nil || [currentState intValue] != 0) {
                 [self setStateToNumber:[NSNumber numberWithInt:0] forAction:ACTID_DUE_TASKS inContext:context];
             }
             if (numberOfDueTasks != 0) {
                 [self.connectionManager logMessage:[NSString stringWithFormat:@"Unexpected number of tasks: %d", numberOfDueTasks]];
                 [self.connectionManager showAlertForContext:context];
             }
-            [self.connectionManager setTitle:nil withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
+            [self.connectionManager setTitle:@"" withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
         }
 	}
 }
