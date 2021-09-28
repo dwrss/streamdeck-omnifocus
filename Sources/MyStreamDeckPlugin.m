@@ -306,7 +306,6 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
         [self.actionStates removeObjectForKey:action];
         // If we're not active in any known contexts, invalidate the timer
         [self.refreshTimer invalidate];
-        [self.connectionManager logMessage:[NSString stringWithFormat:@"No remaining contexts for action: %@", action]];
     }
 }
 
