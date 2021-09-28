@@ -321,7 +321,11 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 
 - (void)deviceDidConnect:(NSString *)deviceID withDeviceInfo:(NSDictionary *)deviceInfo
 {
-	// Nothing to do
+    if ([self.knownContexts count] > 0) {
+        // Last we heard, we were being displayed.
+        // Device connection seems like a good time to refresh
+        [self refreshDueCount];
+    }
 }
 
 - (void)deviceDidDisconnect:(NSString *)deviceID
