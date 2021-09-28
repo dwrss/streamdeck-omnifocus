@@ -24,8 +24,10 @@
 #import <AppKit/AppKit.h>
 
 
-// Refresh the unread count every 60s
-#define REFRESH_DUE_COUNT_TIME_INTERVAL		60.0
+// Refresh the unread count every 30s
+#define REFRESH_DUE_COUNT_TIME_INTERVAL		30.0
+// Number of seconds "late" the timer is allowed to fire
+#define REFRESH_DUE_COUNT_TOLERANCE         10.0
 
 
 // Size of the images
@@ -187,6 +189,8 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 	if(self.refreshTimer == nil)
 	{
         self.refreshTimer = [NSTimer scheduledTimerWithTimeInterval:REFRESH_DUE_COUNT_TIME_INTERVAL target:self selector:@selector(refreshDueCount) userInfo:nil repeats:YES];
+        // Update intervals are not absolutely critical, so allow a 10s tolerance
+        self.refreshTimer.tolerance = REFRESH_DUE_COUNT_TOLERANCE;
 	}
     if (self.numberOfDueTasksScript == nil) {
         NSURL* url = [NSURL fileURLWithPath:GetResourcePath(@"NumberOfDueTasks.scpt")];
