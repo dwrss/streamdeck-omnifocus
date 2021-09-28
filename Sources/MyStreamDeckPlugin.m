@@ -186,7 +186,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 	}
 	
 	// Create a timer to repetivily update the actions
-	if(self.refreshTimer == nil)
+	if(![[self refreshTimer] isValid])
 	{
         self.refreshTimer = [NSTimer scheduledTimerWithTimeInterval:REFRESH_DUE_COUNT_TIME_INTERVAL target:self selector:@selector(refreshDueCount) userInfo:nil repeats:YES];
         // Update intervals are not absolutely critical, so allow a 10s tolerance
