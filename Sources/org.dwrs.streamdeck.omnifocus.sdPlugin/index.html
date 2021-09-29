@@ -42,8 +42,6 @@
 		});
 
 		function connected(jsonObj) {
-			console.log('connected');
-			console.log(jsonObj);
 			uuid = jsonObj.uuid;
 			actionInfo = jsonObj.actionInfo.action;
 			ctx = jsonObj.actionInfo.context;
@@ -70,7 +68,6 @@
 				customPerspectiveElement.classList.add('hidden');
 			}
 			$SD.api.setSettings(uuid, settings);
-			console.log(settings);
 		}
 	</script>
 </body>
