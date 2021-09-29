@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>Omnifocus</title>
+	<link rel="stylesheet" href="css/sdpi.css">
+	<style>
+    	.hidden {
+      		display: none;
+    	}
+	</style>
+</head>
+<body>
+	<div class="sdpi-wrapper localbody hiddenx">
+		
+		<div class="sdpi-item" id="select_single">
+    		<div class="sdpi-item-label">Open Perspective</div>
+    		<select class="sdpi-item-value select" id="perspective" onchange="saveSettings()">
+       			<option value="forecast" selected>Forecast</option>
+       			<option value="inbox">Inbox</option>
+       			<option value="flagged">Flagged</option>
+       			<option value="projects">Projects</option>
+       			<option value="tags">Tags</option>
+       			<option value="custom">Custom Perspective</option>
+    		</select>
+		</div>
+		<div class="sdpi-item hidden" id="customPerspective">
+			<div class="sdpi-item-label">Custom Perspective</div>
+			<input class="sdpi-item-value" type="text" id="customPerspectiveText" value="" placeholder="Enter custom perspective name" oninput="saveSettings()">
+		</div>
+
+	</div>
+	<script src="common.js"></script>
+	<script>
+		var uuid,
+		actionInfo,
+		settings,
+		ctx;
+
+		$SD.on('connected', (jsonObj) => {
+			connected(jsonObj);
+		});
+
+		function connected(jsonObj) {
+			console.log('connected');
+			console.log(jsonObj);
+			uuid = jsonObj.uuid;
+			actionInfo = jsonObj.actionInfo.action;
+			ctx = jsonObj.actionInfo.context;
+			settings = jsonObj.actionInfo.payload.settings;
+
+			const language = settings.language;
+
+			if (settings.perspective) {
+				document.getElementById('perspective').value = settings.perspective;
+			}
+			if (settings.perspective === 'custom') {
+				document.getElementById('customPerspectiveText').value = settings.customPerspective || '';
+				document.getElementById('customPerspective').classList.remove('hidden');
+			}
+		}
+
+		function saveSettings() {
+			settings.perspective = document.getElementById('perspective').value;
+			const customPerspectiveElement = document.getElementById('customPerspective');
+			if (settings.perspective === 'custom') {
+				customPerspectiveElement.classList.remove('hidden');
+				settings.customPerspective = document.getElementById('customPerspectiveText').value;
+			} else if (!customPerspectiveElement.classList.contains('hidden')) {
+				customPerspectiveElement.classList.add('hidden');
+			}
+			$SD.api.setSettings(uuid, settings);
+			console.log(settings);
+		}
+	</script>
+</body>
+</html>

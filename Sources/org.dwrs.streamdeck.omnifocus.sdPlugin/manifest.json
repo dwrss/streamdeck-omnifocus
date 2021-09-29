@@ -33,6 +33,7 @@
   "SDKVersion": 2,
   "Author": "David Stephens",
   "CodePath": "OmniFocus",
+  "PropertyInspectorPath": "index.html",
   "Description": "See how many due tasks you have.",
   "Name": "OmniFocus",
   "Icon": "OmniFocus",
