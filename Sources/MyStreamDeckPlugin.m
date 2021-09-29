@@ -22,6 +22,7 @@
 #import "ESDConnectionManager.h"
 #import "ESDUtilities.h"
 #import <AppKit/AppKit.h>
+#import "OFSDDefines.h"
 
 
 // Refresh the unread count every 30s
@@ -168,6 +169,8 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 
 @property (strong) NSAppleScript *numberOfDueTasksScript;
 
+@property (strong) NSMutableDictionary *settingsForContext;
+
 @end
 
 
@@ -199,6 +202,11 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
         if (self.numberOfDueTasksScript == nil) {
             [self.connectionManager logMessage:[NSString stringWithFormat:@"Error loading NumberOfDueTasks.scpt: %@", errors]];
         }
+    }
+    // Create the array of known contexts
+    if(self.settingsForContext == nil)
+    {
+        self.settingsForContext = [[NSMutableDictionary alloc] init];
     }
 }
 
@@ -273,13 +281,39 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
     }
 }
 
+- (void)saveSettingsFromPayload:(NSDictionary * _Nonnull)payload forContext:(id)context {
+    // Settings a context-specific
+    NSDictionary *settingsPayload = @{context: payload[@"settings"]};
+    if (settingsPayload == nil) {
+        [self.connectionManager logMessage:@"Payload did not contain settings"];
+        return;
+    }
+    [self.settingsForContext addEntriesFromDictionary:settingsPayload];
+}
+
 
 // MARK: - Events handler
 
 
 - (void)keyDownForAction:(NSString *)action withContext:(id)context withPayload:(NSDictionary *)payload forDevice:(NSString *)deviceID {
+    NSDictionary *settings = [self.settingsForContext objectForKey:context];
+    NSString *perspective = [settings objectForKey:@kOFSDSettingPerspective];
+    NSString *path = @"forecast";
+    if (perspective != nil) {
+        if ([perspective isEqualToString:@"custom"]) {
+            NSString *customPerspective = [settings objectForKey:@kOFSDSettingCustomPerspective];
+            if (customPerspective != nil) {
+                path = [NSString stringWithFormat:@"perspective/%@", customPerspective];
+            } else {
+                [self.connectionManager logMessage:@"Custom perspective selected but none provided"];
+            }
+        } else {
+            path = [settings objectForKey:@kOFSDSettingPerspective];
+        }
+    }
+    
 	// On key press, open OmniFocus
-    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"omnifocus:///forecast"]];
+    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"omnifocus:///%@", path]]];
 }
 
 - (void)keyUpForAction:(NSString *)action withContext:(id)context withPayload:(NSDictionary *)payload forDevice:(NSString *)deviceID
@@ -297,6 +331,9 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 - (void)willAppearForAction:(NSString *)action withContext:(id)context withPayload:(NSDictionary *)payload forDevice:(NSString *)deviceID {
 	// Set up the instance variables if needed
 	[self setupIfNeeded];
+    
+    // Store the settings for future use
+    [self saveSettingsFromPayload:payload forContext:context];
 	
 	// Add the context to the list of known contexts
 	[self.knownContexts addObject:context];
@@ -356,4 +393,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
     }
 }
 
+- (void) didReceiveSettingsForAction:(NSString *)action withContext:(id)context withPayload:(NSDictionary *)payload forDevice:(NSString *)deviceID {
+    [self saveSettingsFromPayload:payload forContext:context];
+}
 @end
