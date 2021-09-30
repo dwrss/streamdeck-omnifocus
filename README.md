@@ -9,10 +9,11 @@
 
 # Features
 
-- code written in Objective-C
+- Code written in Objective-C
 - macOS only
-- [will be ]localized
-- detects if OmniFocus is running
+- Localized
+- Opens (configurable) perspective on button press
+- Detects if OmniFocus is running
 
 ![](screenshot.png)
 
