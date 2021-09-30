@@ -370,6 +370,10 @@
             if ([self.delegate respondsToSelector:@selector(didReceiveSettingsForAction:withContext:withPayload:forDevice:)]) {
                [self.delegate didReceiveSettingsForAction:action withContext:context withPayload:payload forDevice:deviceID];
             }
+        } else if ([event isEqualToString:@kESDSDKEventDidReceiveGlobalSettings]) {
+            if ([self.delegate respondsToSelector:@selector(didReceiveGlobalSettings:)]) {
+                [self.delegate didReceiveGlobalSettings:payload];
+            }
         }
 	}
 	@catch(...)
