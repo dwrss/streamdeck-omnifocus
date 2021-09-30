@@ -28,6 +28,11 @@
 			<div class="sdpi-item-label">Custom Perspective</div>
 			<input class="sdpi-item-value" type="text" id="customPerspectiveText" value="" placeholder="Enter custom perspective name" oninput="saveSettings()">
 		</div>
+		
+		<div class="sdpi-item" title="How frequently the plugin fetches your task count.">
+    		<div class="sdpi-item-label">Refresh interval</div>
+    		<input class="sdpi-item-value" id="refreshInterval" value="" placeholder="30" pattern="\d+">
+		</div>
 
 	</div>
 	<script src="common.js"></script>
@@ -35,10 +40,18 @@
 		var uuid,
 		actionInfo,
 		settings,
+		globalSettings,
 		ctx;
 
 		$SD.on('connected', (jsonObj) => {
 			connected(jsonObj);
+		});
+		$SD.on('didReceiveGlobalSettings', (jsonObj) => {
+			globalSettings = jsonObj.payload.settings);
+			console.log(globalSettings)
+			if (globalSettings.refreshInterval) {
+				document.getElementById('refreshInterval').value = globalSettings.refreshInterval;
+			}
 		});
 
 		function connected(jsonObj) {
@@ -48,6 +61,8 @@
 			settings = jsonObj.actionInfo.payload.settings;
 
 			const language = settings.language;
+			
+			$SD.api.getGlobalSettings(uuid);
 
 			if (settings.perspective) {
 				document.getElementById('perspective').value = settings.perspective;
@@ -67,7 +82,14 @@
 			} else if (!customPerspectiveElement.classList.contains('hidden')) {
 				customPerspectiveElement.classList.add('hidden');
 			}
+			const refreshIntervalValue = document.getElementById('refreshInterval').value
+			if (refreshIntervalValue) {
+				globalSettings.refreshInterval = refreshIntervalValue
+			}
 			$SD.api.setSettings(uuid, settings);
+			if (globalSettings) {
+				$SD.api.setGlobalSettings(uuid, globalSettings);
+			}
 		}
 	</script>
 </body>
