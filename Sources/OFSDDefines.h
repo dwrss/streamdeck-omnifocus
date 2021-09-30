@@ -11,5 +11,6 @@
 
 #define kOFSDSettingPerspective                         "perspective"
 #define kOFSDSettingCustomPerspective                   "customPerspective"
+#define kOFSDSettingRefreshInterval                     "refreshInterval"
 
 #endif /* OFSDDefines_h */

@@ -171,6 +171,8 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 
 @property (strong) NSMutableDictionary *settingsForContext;
 
+@property (assign) NSTimeInterval refreshInterval;
+
 @end
 
 
@@ -188,13 +190,16 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
         self.knownContexts = [[NSMutableArray alloc] init];
 	}
 	
-	// Create a timer to repetitively update the actions
-	if(![[self refreshTimer] isValid])
-	{
+	// Create/update a timer to repetitively update the actions
+    BOOL shouldUpdateInterval = self.refreshInterval > 0 && self.refreshInterval != self.refreshTimer.timeInterval;
+    if (shouldUpdateInterval) {
+        [self.refreshTimer invalidate];
+    }
+	if(![[self refreshTimer] isValid] || shouldUpdateInterval) {
         self.refreshTimer = [NSTimer scheduledTimerWithTimeInterval:REFRESH_DUE_COUNT_TIME_INTERVAL target:self selector:@selector(refreshDueCount) userInfo:nil repeats:YES];
         // Update intervals are not absolutely critical, so allow a 10s tolerance
         self.refreshTimer.tolerance = REFRESH_DUE_COUNT_TOLERANCE;
-	}
+    }
     if (self.numberOfDueTasksScript == nil) {
         NSURL* url = [NSURL fileURLWithPath:GetResourcePath(@"NumberOfDueTasks.scpt")];
         NSDictionary *errors = nil;
