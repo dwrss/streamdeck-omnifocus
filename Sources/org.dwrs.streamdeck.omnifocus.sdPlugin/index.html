@@ -81,13 +81,11 @@
 			} else if (!customPerspectiveElement.classList.contains('hidden')) {
 				customPerspectiveElement.classList.add('hidden');
 			}
-			console.log(globalSettings);
 			const refreshIntervalValue = document.getElementById('refreshInterval').value
 			if (globalSettings.refreshInterval !== refreshIntervalValue) {
 				globalSettings.refreshInterval = refreshIntervalValue
 				$SD.api.setGlobalSettings(uuid, globalSettings);
 			}
-			console.log(globalSettings)
 			$SD.api.setSettings(uuid, settings);
 		}
 	</script>
