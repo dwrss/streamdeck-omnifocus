@@ -193,10 +193,12 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 	// Create/update a timer to repetitively update the actions
     BOOL shouldUpdateInterval = self.refreshInterval > 0 && self.refreshInterval != self.refreshTimer.timeInterval;
     if (shouldUpdateInterval) {
+        [self.connectionManager logMessage:[NSString stringWithFormat:@"Refresh interval changed to %.2f", self.refreshInterval]];
         [self.refreshTimer invalidate];
     }
 	if(![[self refreshTimer] isValid] || shouldUpdateInterval) {
-        self.refreshTimer = [NSTimer scheduledTimerWithTimeInterval:REFRESH_DUE_COUNT_TIME_INTERVAL target:self selector:@selector(refreshDueCount) userInfo:nil repeats:YES];
+        NSTimeInterval interval = self.refreshInterval > 0 ? self.refreshInterval : REFRESH_DUE_COUNT_TIME_INTERVAL;
+        self.refreshTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(refreshDueCount) userInfo:nil repeats:YES];
         // Update intervals are not absolutely critical, so allow a 10s tolerance
         self.refreshTimer.tolerance = REFRESH_DUE_COUNT_TOLERANCE;
     }
@@ -400,5 +402,15 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 
 - (void) didReceiveSettingsForAction:(NSString *)action withContext:(id)context withPayload:(NSDictionary *)payload forDevice:(NSString *)deviceID {
     [self saveSettingsFromPayload:payload forContext:context];
+}
+
+- (void) didReceiveGlobalSettings:(NSDictionary *)payload {
+    NSDictionary *settings = payload[@"settings"];
+    double refreshInterval = [[settings objectForKey:@kOFSDSettingRefreshInterval] doubleValue];
+    self.refreshInterval = refreshInterval;
+    if ([[self refreshTimer] isValid]) {
+        [self.refreshTimer invalidate];
+        [self setupIfNeeded];
+    }
 }
 @end

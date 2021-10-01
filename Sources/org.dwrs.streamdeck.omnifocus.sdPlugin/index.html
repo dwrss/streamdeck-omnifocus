@@ -31,7 +31,7 @@
 		
 		<div class="sdpi-item" title="How frequently the plugin fetches your task count.">
     		<div class="sdpi-item-label">Refresh interval</div>
-    		<input class="sdpi-item-value" id="refreshInterval" value="" placeholder="30" pattern="\d+">
+    		<input class="sdpi-item-value" id="refreshInterval" value="" placeholder="30" pattern="\d+" oninput="saveSettings()">
 		</div>
 
 	</div>
@@ -47,8 +47,7 @@
 			connected(jsonObj);
 		});
 		$SD.on('didReceiveGlobalSettings', (jsonObj) => {
-			globalSettings = jsonObj.payload.settings);
-			console.log(globalSettings)
+			globalSettings = jsonObj.payload.settings;
 			if (globalSettings.refreshInterval) {
 				document.getElementById('refreshInterval').value = globalSettings.refreshInterval;
 			}
@@ -82,14 +81,14 @@
 			} else if (!customPerspectiveElement.classList.contains('hidden')) {
 				customPerspectiveElement.classList.add('hidden');
 			}
+			console.log(globalSettings);
 			const refreshIntervalValue = document.getElementById('refreshInterval').value
-			if (refreshIntervalValue) {
+			if (globalSettings.refreshInterval !== refreshIntervalValue) {
 				globalSettings.refreshInterval = refreshIntervalValue
-			}
-			$SD.api.setSettings(uuid, settings);
-			if (globalSettings) {
 				$SD.api.setGlobalSettings(uuid, globalSettings);
 			}
+			console.log(globalSettings)
+			$SD.api.setSettings(uuid, settings);
 		}
 	</script>
 </body>
