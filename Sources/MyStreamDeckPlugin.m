@@ -26,8 +26,8 @@
 #import "MyStreamDeckPlugin+Scripting.h"
 
 
-// Refresh the unread count every 30s
-#define REFRESH_DUE_COUNT_TIME_INTERVAL		30.0
+// Refresh the unread count every 60s
+#define REFRESH_DUE_COUNT_TIME_INTERVAL		60.0
 // Minimum interval between refreshes
 #define REFRESH_DUE_COUNT_MINIMUM_INTERVAL  10.0
 // Number of seconds "late" the timer is allowed to fire
@@ -221,7 +221,6 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 - (void) deactivateNotification:(NSNotification *)notification {
     NSRunningApplication *deactivatedApplication = notification.userInfo[NSWorkspaceApplicationKey];
     if ([deactivatedApplication.bundleIdentifier isEqualToString:OMNIFOCUS_BUNDLE_ID]) {
-        [self.connectionManager logMessage:@"Omnifocus deactivated. Refreshing due count"];
         [self refreshDueCount];
     }
 }
