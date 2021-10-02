@@ -211,7 +211,6 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
         if (badgeCountSources == nil) {
             [self.connectionManager logMessage:@"No sources for badge count"];
         }
-        [self.connectionManager logMessage:[NSString stringWithFormat:@"Badge count sources: %@", badgeCountSources.description]];
         if ([badgeCountSources containsObject:@kOFSDSettingBadgeCountFromOverdue]) {
             if (self.numberOfOverdueTasksScript == nil) {
                 self.numberOfOverdueTasksScript = [self setupScriptWithName:@"NumberOfOverdueTasks"];
