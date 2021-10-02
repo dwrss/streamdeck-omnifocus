@@ -28,6 +28,8 @@
 
 // Refresh the unread count every 30s
 #define REFRESH_DUE_COUNT_TIME_INTERVAL		30.0
+// Minimum interval between refreshes
+#define REFRESH_DUE_COUNT_MINIMUM_INTERVAL  10.0
 // Number of seconds "late" the timer is allowed to fire
 #define REFRESH_DUE_COUNT_TOLERANCE         10.0
 
@@ -156,6 +158,8 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 
 @property (assign) NSTimeInterval refreshInterval;
 
+@property (assign) NSTimeInterval lastRefresh;
+
 @end
 
 
@@ -220,16 +224,24 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 // MARK: - Refresh all actions
 
 - (void)refreshDueCount {
-	if (!self.isOmniFocusRunning) {
+    if (!self.isOmniFocusRunning) {
         [self.connectionManager logMessage:@"OmniFocus not running, not refreshing due count"];
-		return;
-	}
+        return;
+    }
+    
+    NSDate *now = [[NSDate alloc] init];
+    NSTimeInterval timeSinceLastRefresh = [now timeIntervalSince1970] - self.lastRefresh;
+    if (timeSinceLastRefresh < REFRESH_DUE_COUNT_MINIMUM_INTERVAL) {
+        [self.connectionManager logMessage:[NSString stringWithFormat:@"Not refreshing. Only %.2f since last refresh", timeSinceLastRefresh]];
+        return;
+    }
+    self.lastRefresh = [[[NSDate alloc] init] timeIntervalSince1970];
 	
-	// Execute the Applescripts to retrieve the number of due tasks
 	int numberOfDueTasks = -1;
 	
 	// Update each known context with the new value
 	for (NSString *context in self.knownContexts) {
+        // Execute the Applescripts to retrieve the number of due tasks
         NSMutableDictionary *settingsPayload = [self.settingsForContext objectForKey:context];
         NSSet *badgeCountSources = settingsPayload[@kOFSDSettingBadgeCount];
         if (badgeCountSources == nil) {
