@@ -148,18 +148,23 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 // The current state for each visible action
 @property (strong) NSMutableDictionary *actionStates;
 
+// AppleScripts for fetching badge count
 @property (strong) NSAppleScript *numberOfDueTasksScript;
 
 @property (strong) NSAppleScript *numberOfOverdueTasksScript;
 
 @property (strong) NSAppleScript *numberOfFlaggedTasksScript;
 
+// Settings for each context (instance of the button)
 @property (strong) NSMutableDictionary *settingsForContext;
 
+// The configured interval for the refresh timer
 @property (assign) NSTimeInterval refreshInterval;
 
+// Tells us if we already subscribed to didDeactivate notifications
 @property (assign) BOOL isSubscribedDeactivateNotifications;
 
+// Unix time of the last refresh
 @property (assign) NSTimeInterval lastRefresh;
 
 @end
@@ -444,6 +449,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
     NSDictionary *settings = payload[@"settings"];
     double refreshInterval = [[settings objectForKey:@kOFSDSettingRefreshInterval] doubleValue];
     self.refreshInterval = refreshInterval;
+    // If the timer is running, we'll need to reconfigure it for the new interval
     if ([[self refreshTimer] isValid]) {
         [self setupIfNeeded];
     }
