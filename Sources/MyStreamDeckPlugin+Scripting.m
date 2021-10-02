@@ -35,6 +35,11 @@ static NSString * GetResourcePath(NSString *inFilename)
 
 @implementation MyStreamDeckPlugin (Scripting)
 
+/**
+ Initialises the AppleScript with the provided name
+ 
+ @param name The path to the script, excluding the extension.
+ */
 - (NSAppleScript *)setupScriptWithName:(NSString *)name {
     NSURL* url = [NSURL fileURLWithPath:GetResourcePath([NSString stringWithFormat:@"%@.scpt", name])];
     NSDictionary *errors = nil;
@@ -45,7 +50,15 @@ static NSString * GetResourcePath(NSString *inFilename)
     return script;
 }
 
-
+/**
+ Fetches the due count using the provided script .
+ 
+ The result is written to the location of the  `number` pointer.
+ If `number < 0`, it will be set to the result. Otherwise, the result will be added to `number`.
+ 
+ @param number A pointer to count to update.
+ @param script The AppleScript to run
+ */
 - (void)numberDue:(int*)number fromScript:(NSAppleScript *) script {
     NSDictionary *errors = nil;
     int numberOfTasks = 0;
