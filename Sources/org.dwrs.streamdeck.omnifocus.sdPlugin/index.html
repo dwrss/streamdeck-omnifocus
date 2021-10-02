@@ -1,93 +1,175 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<meta charset="utf-8" />
-	<title>Omnifocus</title>
-	<link rel="stylesheet" href="css/sdpi.css">
-	<style>
-    	.hidden {
-      		display: none;
-    	}
-	</style>
-</head>
-<body>
-	<div class="sdpi-wrapper localbody hiddenx">
-		
-		<div class="sdpi-item" id="select_single">
-    		<div class="sdpi-item-label">Open Perspective</div>
-    		<select class="sdpi-item-value select" id="perspective" onchange="saveSettings()">
-       			<option value="forecast" selected>Forecast</option>
-       			<option value="inbox">Inbox</option>
-       			<option value="flagged">Flagged</option>
-       			<option value="projects">Projects</option>
-       			<option value="tags">Tags</option>
-       			<option value="custom">Custom Perspective</option>
-    		</select>
-		</div>
-		<div class="sdpi-item hidden" id="customPerspective">
-			<div class="sdpi-item-label">Custom Perspective</div>
-			<input class="sdpi-item-value" type="text" id="customPerspectiveText" value="" placeholder="Enter custom perspective name" oninput="saveSettings()">
-		</div>
-		
-		<div class="sdpi-item" title="How frequently the plugin fetches your task count.">
-    		<div class="sdpi-item-label">Refresh interval</div>
-    		<input class="sdpi-item-value" id="refreshInterval" value="" placeholder="30" pattern="\d+" oninput="saveSettings()">
-		</div>
+  <head>
+    <meta charset="utf-8" />
+    <title>Omnifocus</title>
+    <link rel="stylesheet" href="css/sdpi.css" />
+    <style>
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sdpi-wrapper localbody hiddenx">
+      <div type="checkbox" class="sdpi-item" id="badgeCount">
+        <div class="sdpi-item-label">Badge Count</div>
+        <div class="sdpi-item-value min100">
+          <div class="sdpi-item-child">
+            <input
+              id="overdueCount"
+              type="checkbox"
+              value="left"
+              onchange="saveSettings()"
+              checked
+            />
+            <label for="overdueCount" class="sdpi-item-label"
+              ><span></span>Overdue</label
+            >
+          </div>
+          <div class="sdpi-item-child">
+            <input
+              id="todayCount"
+              type="checkbox"
+              value="right"
+              onchange="saveSettings()"
+              checked
+            />
+            <label for="todayCount" class="sdpi-item-label"
+              ><span></span>Due Today</label
+            >
+          </div>
+          <div class="sdpi-item-child">
+            <input
+              id="flaggedCount"
+              type="checkbox"
+              value="center"
+              onchange="saveSettings()"
+            />
+            <label for="flaggedCount" class="sdpi-item-label"
+              ><span></span>Flagged</label
+            >
+          </div>
+        </div>
+      </div>
 
-	</div>
-	<script src="common.js"></script>
-	<script>
-		var uuid,
-		actionInfo,
-		settings,
-		globalSettings,
-		ctx;
+      <div class="sdpi-item" id="perspectiveChoice">
+        <div class="sdpi-item-label">Open Perspective</div>
+        <select
+          class="sdpi-item-value select"
+          id="perspective"
+          onchange="saveSettings()"
+        >
+          <option value="forecast" selected>Forecast</option>
+          <option value="inbox">Inbox</option>
+          <option value="flagged">Flagged</option>
+          <option value="projects">Projects</option>
+          <option value="tags">Tags</option>
+          <option value="custom">Custom Perspective</option>
+        </select>
+      </div>
+      <div class="sdpi-item hidden" id="customPerspective">
+        <div class="sdpi-item-label">Custom Perspective</div>
+        <input
+          class="sdpi-item-value"
+          type="text"
+          id="customPerspectiveText"
+          value=""
+          placeholder="Enter custom perspective name"
+          oninput="saveSettings()"
+        />
+      </div>
 
-		$SD.on('connected', (jsonObj) => {
-			connected(jsonObj);
-		});
-		$SD.on('didReceiveGlobalSettings', (jsonObj) => {
-			globalSettings = jsonObj.payload.settings;
-			if (globalSettings.refreshInterval) {
-				document.getElementById('refreshInterval').value = globalSettings.refreshInterval;
-			}
-		});
+      <div
+        class="sdpi-item"
+        title="How frequently the plugin fetches your task count."
+      >
+        <div class="sdpi-item-label">Refresh interval</div>
+        <input
+          class="sdpi-item-value"
+          id="refreshInterval"
+          value=""
+          placeholder="30"
+          pattern="\d+"
+          oninput="saveSettings()"
+        />
+      </div>
+    </div>
+    <script src="common.js"></script>
+    <script>
+      var uuid, actionInfo, settings, globalSettings, ctx;
 
-		function connected(jsonObj) {
-			uuid = jsonObj.uuid;
-			actionInfo = jsonObj.actionInfo.action;
-			ctx = jsonObj.actionInfo.context;
-			settings = jsonObj.actionInfo.payload.settings;
+      $SD.on("connected", (jsonObj) => {
+        connected(jsonObj);
+      });
+      $SD.on("didReceiveGlobalSettings", (jsonObj) => {
+        globalSettings = jsonObj.payload.settings;
+        if (globalSettings.refreshInterval) {
+          document.getElementById("refreshInterval").value =
+            globalSettings.refreshInterval;
+        }
+      });
 
-			const language = settings.language;
-			
-			$SD.api.getGlobalSettings(uuid);
+      function connected(jsonObj) {
+        uuid = jsonObj.uuid;
+        actionInfo = jsonObj.actionInfo.action;
+        ctx = jsonObj.actionInfo.context;
+        settings = jsonObj.actionInfo.payload.settings;
 
-			if (settings.perspective) {
-				document.getElementById('perspective').value = settings.perspective;
-			}
-			if (settings.perspective === 'custom') {
-				document.getElementById('customPerspectiveText').value = settings.customPerspective || '';
-				document.getElementById('customPerspective').classList.remove('hidden');
-			}
-		}
+        const language = settings.language;
 
-		function saveSettings() {
-			settings.perspective = document.getElementById('perspective').value;
-			const customPerspectiveElement = document.getElementById('customPerspective');
-			if (settings.perspective === 'custom') {
-				customPerspectiveElement.classList.remove('hidden');
-				settings.customPerspective = document.getElementById('customPerspectiveText').value;
-			} else if (!customPerspectiveElement.classList.contains('hidden')) {
-				customPerspectiveElement.classList.add('hidden');
-			}
-			const refreshIntervalValue = document.getElementById('refreshInterval').value
-			if (globalSettings.refreshInterval !== refreshIntervalValue) {
-				globalSettings.refreshInterval = refreshIntervalValue
-				$SD.api.setGlobalSettings(uuid, globalSettings);
-			}
-			$SD.api.setSettings(uuid, settings);
-		}
-	</script>
-</body>
+        $SD.api.getGlobalSettings(uuid);
+
+        if (settings.badgeCount) {
+          settings.badgeCount.forEach(function (badgeOption) {
+            document.getElementById(badgeOption).checked = true;
+          });
+        }
+
+        if (settings.perspective) {
+          document.getElementById("perspective").value = settings.perspective;
+        }
+        if (settings.perspective === "custom") {
+          document.getElementById("customPerspectiveText").value =
+            settings.customPerspective || "";
+          document
+            .getElementById("customPerspective")
+            .classList.remove("hidden");
+        }
+      }
+
+      function saveSettings() {
+        badgeCount = [];
+        if (document.getElementById("overdueCount").checked) {
+          badgeCount.push("overdueCount");
+        }
+        if (document.getElementById("todayCount").checked) {
+          badgeCount.push("todayCount");
+        }
+        if (document.getElementById("flaggedCount").checked) {
+          badgeCount.push("flaggedCount");
+        }
+        settings.badgeCount = badgeCount;
+
+        settings.perspective = document.getElementById("perspective").value;
+        const customPerspectiveElement =
+          document.getElementById("customPerspective");
+        if (settings.perspective === "custom") {
+          customPerspectiveElement.classList.remove("hidden");
+          settings.customPerspective = document.getElementById(
+            "customPerspectiveText"
+          ).value;
+        } else if (!customPerspectiveElement.classList.contains("hidden")) {
+          customPerspectiveElement.classList.add("hidden");
+        }
+        const refreshIntervalValue =
+          document.getElementById("refreshInterval").value;
+        if (globalSettings.refreshInterval !== refreshIntervalValue) {
+          globalSettings.refreshInterval = refreshIntervalValue;
+          $SD.api.setGlobalSettings(uuid, globalSettings);
+        }
+        $SD.api.setSettings(uuid, settings);
+      }
+    </script>
+  </body>
 </html>
