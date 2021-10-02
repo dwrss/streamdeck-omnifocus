@@ -23,6 +23,7 @@
 #import "ESDUtilities.h"
 #import <AppKit/AppKit.h>
 #import "OFSDDefines.h"
+#import "MyStreamDeckPlugin+Scripting.h"
 
 
 // Refresh the unread count every 30s
@@ -36,28 +37,6 @@
 
 static NSString * const OMNIFOCUS_BUNDLE_ID = @"com.omnigroup.OmniFocus3";
 static NSString * const ACTID_DUE_TASKS = @"org.dwrs.streamdeck.omnifocus.action";
-
-// MARK: - Utility methods
-
-
-//
-// Utility function to get the fullpath of an resource in the bundle
-//
-static NSString * GetResourcePath(NSString *inFilename)
-{
-	NSString *outPath = nil;
-	
-	if([inFilename length] > 0)
-	{
-		NSString * bundlePath = [ESDUtilities pluginPath];
-		if(bundlePath != nil)
-		{
-			outPath = [bundlePath stringByAppendingPathComponent:inFilename];
-		}
-	}
-	
-	return outPath;
-}
 
 
 //
@@ -169,6 +148,10 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 
 @property (strong) NSAppleScript *numberOfDueTasksScript;
 
+@property (strong) NSAppleScript *numberOfOverdueTasksScript;
+
+@property (strong) NSAppleScript *numberOfFlaggedTasksScript;
+
 @property (strong) NSMutableDictionary *settingsForContext;
 
 @property (assign) NSTimeInterval refreshInterval;
@@ -202,14 +185,6 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
         // Update intervals are not absolutely critical, so allow a 10s tolerance
         self.refreshTimer.tolerance = REFRESH_DUE_COUNT_TOLERANCE;
     }
-    if (self.numberOfDueTasksScript == nil) {
-        NSURL* url = [NSURL fileURLWithPath:GetResourcePath(@"NumberOfDueTasks.scpt")];
-        NSDictionary *errors = nil;
-        self.numberOfDueTasksScript = [[NSAppleScript alloc] initWithContentsOfURL:url error:&errors];
-        if (self.numberOfDueTasksScript == nil) {
-            [self.connectionManager logMessage:[NSString stringWithFormat:@"Error loading NumberOfDueTasks.scpt: %@", errors]];
-        }
-    }
     // Create the array of known contexts
     if(self.settingsForContext == nil)
     {
@@ -226,27 +201,36 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 		return;
 	}
 	
-	// Execute the NumberOfUnreadMails.scpt Applescript to retrieve the number of due tasks
+	// Execute the Applescripts to retrieve the number of due tasks
 	int numberOfDueTasks = -1;
-	
-	NSDictionary *errors = nil;
-	if (self.numberOfDueTasksScript != nil) {
-		NSAppleEventDescriptor *eventDescriptor = [self.numberOfDueTasksScript executeAndReturnError:&errors];
-		if (eventDescriptor != nil && [eventDescriptor descriptorType] != kAENullEvent) {
-			numberOfDueTasks = (int)[eventDescriptor int32Value];
-            if (numberOfDueTasks == 0 && ![eventDescriptor.stringValue isEqualToString: @"0"]) {
-                NSString *logString = [NSString stringWithFormat:@"Error converting '%@' to int", eventDescriptor.stringValue];
-                [self.connectionManager logMessage:logString];
-            }
-		} else {
-            [self.connectionManager logMessage:[NSString stringWithFormat:@"Error running NumberOfDueTasks.scpt: %@", errors]];
-        }
-    } else {
-        [self setupIfNeeded];
-    }
 	
 	// Update each known context with the new value
 	for (NSString *context in self.knownContexts) {
+        NSMutableDictionary *settingsPayload = [self.settingsForContext objectForKey:context];
+        NSSet *badgeCountSources = settingsPayload[@kOFSDSettingBadgeCount];
+        if (badgeCountSources == nil) {
+            [self.connectionManager logMessage:@"No sources for badge count"];
+        }
+        [self.connectionManager logMessage:[NSString stringWithFormat:@"Badge count sources: %@", badgeCountSources.description]];
+        if ([badgeCountSources containsObject:@kOFSDSettingBadgeCountFromOverdue]) {
+            if (self.numberOfOverdueTasksScript == nil) {
+                self.numberOfOverdueTasksScript = [self setupScriptWithName:@"NumberOfOverdueTasks"];
+            }
+            [self numberDue:&numberOfDueTasks fromScript:self.numberOfOverdueTasksScript];
+        }
+        if ([badgeCountSources containsObject:@kOFSDSettingBadgeCountFromToday]) {
+            if (self.numberOfDueTasksScript == nil) {
+                self.numberOfDueTasksScript = [self setupScriptWithName:@"NumberOfDueTasks"];
+            }
+            [self numberDue:&numberOfDueTasks fromScript:self.numberOfDueTasksScript];
+        }
+        if ([badgeCountSources containsObject:@kOFSDSettingBadgeCountFromFlagged]) {
+            if (self.numberOfFlaggedTasksScript == nil) {
+                self.numberOfFlaggedTasksScript = [self setupScriptWithName:@"NumberOfFlaggedTasks"];
+            }
+            [self numberDue:&numberOfDueTasks fromScript:self.numberOfFlaggedTasksScript];
+        }
+        
         if (numberOfDueTasks > 9) {
             [self setStateToNumber:[NSNumber numberWithInt:2] forAction:ACTID_DUE_TASKS inContext:context];
             [self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
@@ -263,6 +247,8 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
         }
 	}
 }
+
+// MARK: - State helpers
 
 - (void)setStateToNumber:(NSNumber * _Nonnull)number forAction:(NSString *)key inContext:(NSString *)context {
     NSNumber *currentState = [self.actionStates objectForKey:ACTID_DUE_TASKS];
@@ -288,14 +274,23 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
     }
 }
 
+// MARK: - Settings helpers
+
 - (void)saveSettingsFromPayload:(NSDictionary * _Nonnull)payload forContext:(id)context {
     // Settings a context-specific
-    NSDictionary *settingsPayload = @{context: payload[@"settings"]};
-    if (settingsPayload == nil) {
+    NSMutableDictionary *settingsPayload = [payload[@"settings"] mutableCopy];
+    NSArray *badgeCountSourcesArray = settingsPayload[@kOFSDSettingBadgeCount];
+    if (badgeCountSourcesArray != nil) {
+        NSSet *badgeCountSourcesSet = [[NSSet alloc] initWithArray:badgeCountSourcesArray];
+        [settingsPayload setObject:@kOFSDSettingBadgeCount forKey:badgeCountSourcesSet];
+        [self.connectionManager logMessage:[NSString stringWithFormat:@"Badge count sources: %@", badgeCountSourcesSet.description]];
+    }
+    NSDictionary *settingsPayloadForContext = @{context: settingsPayload};
+    if (settingsPayloadForContext == nil) {
         [self.connectionManager logMessage:@"Payload did not contain settings"];
         return;
     }
-    [self.settingsForContext addEntriesFromDictionary:settingsPayload];
+    [self.settingsForContext addEntriesFromDictionary:settingsPayloadForContext];
 }
 
 

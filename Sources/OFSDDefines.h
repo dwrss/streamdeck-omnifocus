@@ -12,5 +12,9 @@
 #define kOFSDSettingPerspective                         "perspective"
 #define kOFSDSettingCustomPerspective                   "customPerspective"
 #define kOFSDSettingRefreshInterval                     "refreshInterval"
+#define kOFSDSettingBadgeCount                          "badgeCount"
+#define kOFSDSettingBadgeCountFromOverdue               "overdueCount"
+#define kOFSDSettingBadgeCountFromToday                 "todayCount"
+#define kOFSDSettingBadgeCountFromFlagged               "flaggedCount"
 
 #endif /* OFSDDefines_h */
