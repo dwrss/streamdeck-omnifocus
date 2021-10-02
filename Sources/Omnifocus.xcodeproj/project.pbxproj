@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6378C5C4270875A300E208BE /* MyStreamDeckPlugin+Scripting.m in Sources */ = {isa = PBXBuildFile; fileRef = 6378C5C32708759D00E208BE /* MyStreamDeckPlugin+Scripting.m */; };
 		FA29E473215E7D2300C9F60C /* ESDConnectionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = FA29E46E215E7D2300C9F60C /* ESDConnectionManager.m */; };
 		FA29E474215E7D2300C9F60C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = FA29E46F215E7D2300C9F60C /* main.m */; };
 		FA80591421623A0D00ED7E12 /* ESDUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = FA80591321623A0D00ED7E12 /* ESDUtilities.m */; };
@@ -47,6 +48,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		6378C5C22708759D00E208BE /* MyStreamDeckPlugin+Scripting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MyStreamDeckPlugin+Scripting.h"; sourceTree = "<group>"; };
+		6378C5C32708759D00E208BE /* MyStreamDeckPlugin+Scripting.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "MyStreamDeckPlugin+Scripting.m"; sourceTree = "<group>"; };
 		63A7671127046277000EA8C8 /* OFSDDefines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OFSDDefines.h; sourceTree = "<group>"; };
 		FA0F7B772105CBC30028CF34 /* Omnifocus */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Omnifocus; sourceTree = BUILT_PRODUCTS_DIR; };
 		FA29E46E215E7D2300C9F60C /* ESDConnectionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ESDConnectionManager.m; sourceTree = "<group>"; };
@@ -122,6 +125,8 @@
 			children = (
 				FACCC866211AC281008C87BD /* MyStreamDeckPlugin.h */,
 				FACCC865211AC281008C87BD /* MyStreamDeckPlugin.m */,
+				6378C5C22708759D00E208BE /* MyStreamDeckPlugin+Scripting.h */,
+				6378C5C32708759D00E208BE /* MyStreamDeckPlugin+Scripting.m */,
 				63A7671127046277000EA8C8 /* OFSDDefines.h */,
 				FA29E46D215E7D2300C9F60C /* Common */,
 				FAC7C7E42122CE1D000262E7 /* SocketRocket */,
@@ -354,6 +359,7 @@
 				FAC7C81A2122CE1D000262E7 /* SRProxyConnect.m in Sources */,
 				FAC7C81C2122CE1D000262E7 /* SRPinningSecurityPolicy.m in Sources */,
 				FA29E474215E7D2300C9F60C /* main.m in Sources */,
+				6378C5C4270875A300E208BE /* MyStreamDeckPlugin+Scripting.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
