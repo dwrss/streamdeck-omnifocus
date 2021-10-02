@@ -136,35 +136,35 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 
 @interface MyStreamDeckPlugin ()
 
-// Tells us if OmniFocus is running
+/// Tells us if OmniFocus is running
 @property (assign) BOOL isOmniFocusRunning;
 
-// A timer fired each minute to update the number of unread email from Apple's Mail
+/// A timer fired each minute to update the number of unread email from Apple's Mail
 @property (strong) NSTimer *refreshTimer;
 
-// The list of visible contexts
+/// The list of visible contexts
 @property (strong) NSMutableArray *knownContexts;
 
-// The current state for each visible action
+/// The current state for each visible action
 @property (strong) NSMutableDictionary *actionStates;
 
-// AppleScripts for fetching badge count
+/// AppleScripts for fetching badge count
 @property (strong) NSAppleScript *numberOfDueTasksScript;
 
 @property (strong) NSAppleScript *numberOfOverdueTasksScript;
 
 @property (strong) NSAppleScript *numberOfFlaggedTasksScript;
 
-// Settings for each context (instance of the button)
+/// Settings for each context (instance of the button)
 @property (strong) NSMutableDictionary *settingsForContext;
 
-// The configured interval for the refresh timer
+/// The configured interval for the refresh timer
 @property (assign) NSTimeInterval refreshInterval;
 
-// Tells us if we already subscribed to didDeactivate notifications
+/// Tells us if we already subscribed to didDeactivate notifications
 @property (assign) BOOL isSubscribedDeactivateNotifications;
 
-// Unix time of the last refresh
+/// Unix time of the last refresh
 @property (assign) NSTimeInterval lastRefresh;
 
 @end
@@ -295,6 +295,13 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 
 // MARK: - State helpers
 
+/**
+ Updates the action state in the Stream Deck software and our local store.
+ 
+ @param number The number identifying the new state.
+ @param key The action to which this state relates.
+ @param context The Stream Deck context.
+ */
 - (void)setStateToNumber:(NSNumber * _Nonnull)number forAction:(NSString *)key inContext:(NSString *)context {
     NSNumber *currentState = [self.actionStates objectForKey:ACTID_DUE_TASKS];
     // No need to update when the new state matches out local state
@@ -310,6 +317,12 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
     [self storeStateNumber:number forAction:key];
 }
 
+/**
+ Updates the action state in our local store.
+ 
+ @param stateNumber The number identifying the new state.
+ @param action The action to which this state relates.
+ */
 - (void)storeStateNumber:(nullable NSNumber *)stateNumber forAction:(NSString *)action {
     if (stateNumber != nil) {
         [self.actionStates setObject:stateNumber forKey:action];
@@ -326,9 +339,10 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
     NSMutableDictionary *settingsPayload = [payload[@"settings"] mutableCopy];
     NSArray *badgeCountSourcesArray = settingsPayload[@kOFSDSettingBadgeCount];
     if (badgeCountSourcesArray != nil) {
+        // We look up these entries a lot, so convert to a set.
         NSSet *badgeCountSourcesSet = [[NSSet alloc] initWithArray:badgeCountSourcesArray];
         [settingsPayload setObject:@kOFSDSettingBadgeCount forKey:badgeCountSourcesSet];
-        [self.connectionManager logMessage:[NSString stringWithFormat:@"Badge count sources: %@", badgeCountSourcesSet.description]];
+        [self.connectionManager logMessage:[NSString stringWithFormat:@"Updated badge count sources: %@", badgeCountSourcesSet.description]];
     }
     NSDictionary *settingsPayloadForContext = @{context: settingsPayload};
     if (settingsPayloadForContext == nil) {
