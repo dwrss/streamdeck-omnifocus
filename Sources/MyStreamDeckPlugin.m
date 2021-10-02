@@ -165,6 +165,30 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 
 // MARK: - Setup the instance variables if needed
 
+- (void)setupRefresh {
+    // Create/update a timer to repetitively update the actions
+    BOOL shouldUpdateInterval = self.refreshInterval > 0 && self.refreshInterval != self.refreshTimer.timeInterval;
+    if (shouldUpdateInterval) {
+        [self.connectionManager logMessage:[NSString stringWithFormat:@"Refresh interval changed to %.2f", self.refreshInterval]];
+        [self.refreshTimer invalidate];
+    }
+    if(![[self refreshTimer] isValid] || shouldUpdateInterval) {
+        NSTimeInterval interval = self.refreshInterval > 0 ? self.refreshInterval : REFRESH_DUE_COUNT_TIME_INTERVAL;
+        self.refreshTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(refreshDueCount) userInfo:nil repeats:YES];
+        // Update intervals are not absolutely critical, so allow a 10s tolerance
+        self.refreshTimer.tolerance = REFRESH_DUE_COUNT_TOLERANCE;
+    }
+    NSWorkspace *sharedWorkspace = [NSWorkspace sharedWorkspace];
+    NSNotificationCenter *notificationCentre = [sharedWorkspace notificationCenter];
+    [notificationCentre addObserver:self selector:@selector(deactivateNotification:) name:NSWorkspaceDidDeactivateApplicationNotification object:sharedWorkspace];
+}
+
+- (void)invalidateRefresh {
+    [self.refreshTimer invalidate];
+    NSWorkspace *sharedWorkspace = [NSWorkspace sharedWorkspace];
+    [[sharedWorkspace notificationCenter] removeObserver:self name:NSWorkspaceDidDeactivateApplicationNotification object:sharedWorkspace];
+}
+
 - (void)setupIfNeeded
 {
 	// Create the array of known contexts
@@ -173,22 +197,22 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
         self.knownContexts = [[NSMutableArray alloc] init];
 	}
 	
-	// Create/update a timer to repetitively update the actions
-    BOOL shouldUpdateInterval = self.refreshInterval > 0 && self.refreshInterval != self.refreshTimer.timeInterval;
-    if (shouldUpdateInterval) {
-        [self.connectionManager logMessage:[NSString stringWithFormat:@"Refresh interval changed to %.2f", self.refreshInterval]];
-        [self.refreshTimer invalidate];
-    }
-	if(![[self refreshTimer] isValid] || shouldUpdateInterval) {
-        NSTimeInterval interval = self.refreshInterval > 0 ? self.refreshInterval : REFRESH_DUE_COUNT_TIME_INTERVAL;
-        self.refreshTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(refreshDueCount) userInfo:nil repeats:YES];
-        // Update intervals are not absolutely critical, so allow a 10s tolerance
-        self.refreshTimer.tolerance = REFRESH_DUE_COUNT_TOLERANCE;
-    }
+    // Setup badge count refresh
+    [self setupRefresh];
+    
     // Create the array of known contexts
     if(self.settingsForContext == nil)
     {
         self.settingsForContext = [[NSMutableDictionary alloc] init];
+    }
+}
+
+// MARK: - Listen for OmniFocus deactivation
+- (void) deactivateNotification:(NSNotification *)notification {
+    NSRunningApplication *deactivatedApplication = notification.userInfo[NSWorkspaceApplicationKey];
+    if ([deactivatedApplication.bundleIdentifier isEqualToString:OMNIFOCUS_BUNDLE_ID]) {
+        [self.connectionManager logMessage:@"Omnifocus deactivated. Refreshing due count"];
+        [self refreshDueCount];
     }
 }
 
@@ -293,7 +317,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 }
 
 
-// MARK: - Events handler
+// MARK: - Stream Deck Events handler
 
 
 - (void)keyDownForAction:(NSString *)action withContext:(id)context withPayload:(NSDictionary *)payload forDevice:(NSString *)deviceID {
@@ -356,8 +380,8 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
     if ([self.knownContexts count] == 0) {
         // Remove stored state for the action
         [self.actionStates removeObjectForKey:action];
-        // If we're not active in any known contexts, invalidate the timer
-        [self.refreshTimer invalidate];
+        // If we're not active in any known contexts, invalidate refreshes
+        [self invalidateRefresh];
     }
 }
 
@@ -381,7 +405,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 		
 		// Explicitly refresh the number of due tasks
 		[self refreshDueCount];
-        // We invalidate the timer when the application terminates, so run setup again
+        // We invalidate the refreshes when the application terminates, so run setup again
         [self setupIfNeeded];
 	}
 }
@@ -390,7 +414,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
     if([applicationInfo[@kESDSDKPayloadApplication] isEqualToString:OMNIFOCUS_BUNDLE_ID]) {
         self.isOmniFocusRunning = NO;
         // Omnifocus isn't running, so we can stop the refresh timer
-        [self.refreshTimer invalidate];
+        [self invalidateRefresh];
     }
 }
 
@@ -404,7 +428,6 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
     double refreshInterval = [[settings objectForKey:@kOFSDSettingRefreshInterval] doubleValue];
     self.refreshInterval = refreshInterval;
     if ([[self refreshTimer] isValid]) {
-        [self.refreshTimer invalidate];
         [self setupIfNeeded];
     }
 }
