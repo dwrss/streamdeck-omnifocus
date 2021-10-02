@@ -397,6 +397,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 
 - (void) didReceiveSettingsForAction:(NSString *)action withContext:(id)context withPayload:(NSDictionary *)payload forDevice:(NSString *)deviceID {
     [self saveSettingsFromPayload:payload forContext:context];
+    [self refreshDueCount];
 }
 
 - (void) didReceiveGlobalSettings:(NSDictionary *)payload {
