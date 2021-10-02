@@ -158,6 +158,8 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 
 @property (assign) NSTimeInterval refreshInterval;
 
+@property (assign) BOOL isSubscribedDeactivateNotifications;
+
 @property (assign) NSTimeInterval lastRefresh;
 
 @end
@@ -182,15 +184,19 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
         // Update intervals are not absolutely critical, so allow a 10s tolerance
         self.refreshTimer.tolerance = REFRESH_DUE_COUNT_TOLERANCE;
     }
-    NSWorkspace *sharedWorkspace = [NSWorkspace sharedWorkspace];
-    NSNotificationCenter *notificationCentre = [sharedWorkspace notificationCenter];
-    [notificationCentre addObserver:self selector:@selector(deactivateNotification:) name:NSWorkspaceDidDeactivateApplicationNotification object:sharedWorkspace];
+    if (!self.isSubscribedDeactivateNotifications) {
+        NSWorkspace *sharedWorkspace = [NSWorkspace sharedWorkspace];
+        NSNotificationCenter *notificationCentre = [sharedWorkspace notificationCenter];
+        [notificationCentre addObserver:self selector:@selector(deactivateNotification:) name:NSWorkspaceDidDeactivateApplicationNotification object:sharedWorkspace];
+        self.isSubscribedDeactivateNotifications = YES;
+    }
 }
 
 - (void)invalidateRefresh {
     [self.refreshTimer invalidate];
     NSWorkspace *sharedWorkspace = [NSWorkspace sharedWorkspace];
     [[sharedWorkspace notificationCenter] removeObserver:self name:NSWorkspaceDidDeactivateApplicationNotification object:sharedWorkspace];
+    self.isSubscribedDeactivateNotifications = NO;
 }
 
 - (void)setupIfNeeded
