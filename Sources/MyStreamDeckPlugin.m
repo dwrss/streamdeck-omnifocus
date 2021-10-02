@@ -167,12 +167,15 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 /// Unix time of the last refresh
 @property (assign) NSTimeInterval lastRefresh;
 
+@property (strong) NSRunningApplication *runningOmniFocusApplication;
+
 @end
 
 
 @implementation MyStreamDeckPlugin
 
-
+static void *OFActiveContext = &OFActiveContext;
+static void *OFHiddenContext = &OFHiddenContext;
 
 // MARK: - Setup the instance variables if needed
 
@@ -190,17 +193,22 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
         self.refreshTimer.tolerance = REFRESH_DUE_COUNT_TOLERANCE;
     }
     if (!self.isSubscribedDeactivateNotifications) {
-        NSWorkspace *sharedWorkspace = [NSWorkspace sharedWorkspace];
-        NSNotificationCenter *notificationCentre = [sharedWorkspace notificationCenter];
-        [notificationCentre addObserver:self selector:@selector(deactivateNotification:) name:NSWorkspaceDidDeactivateApplicationNotification object:sharedWorkspace];
+        NSArray<NSRunningApplication*> *ofInstances = [NSRunningApplication runningApplicationsWithBundleIdentifier:OMNIFOCUS_BUNDLE_ID];
+        if ([ofInstances count] < 1) {
+            return;
+        }
+        self.runningOmniFocusApplication = ofInstances.firstObject;
+        [self.runningOmniFocusApplication addObserver:self forKeyPath:@"active" options:0 context:OFActiveContext];
+        [self.runningOmniFocusApplication addObserver:self forKeyPath:@"hidden" options:0 context:OFHiddenContext];
         self.isSubscribedDeactivateNotifications = YES;
     }
 }
 
 - (void)invalidateRefresh {
     [self.refreshTimer invalidate];
-    NSWorkspace *sharedWorkspace = [NSWorkspace sharedWorkspace];
-    [[sharedWorkspace notificationCenter] removeObserver:self name:NSWorkspaceDidDeactivateApplicationNotification object:sharedWorkspace];
+    [self.runningOmniFocusApplication removeObserver:self forKeyPath:@"active" context:OFActiveContext];
+    [self.runningOmniFocusApplication removeObserver:self forKeyPath:@"hidden" context:OFHiddenContext];
+    self.runningOmniFocusApplication = nil;
     self.isSubscribedDeactivateNotifications = NO;
 }
 
@@ -223,10 +231,17 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 }
 
 // MARK: - Listen for OmniFocus deactivation
-- (void) deactivateNotification:(NSNotification *)notification {
-    NSRunningApplication *deactivatedApplication = notification.userInfo[NSWorkspaceApplicationKey];
-    if ([deactivatedApplication.bundleIdentifier isEqualToString:OMNIFOCUS_BUNDLE_ID]) {
-        [self refreshDueCount];
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
+    if (context == OFActiveContext) {
+        if ([(NSNumber *)[object valueForKey:@"active"] boolValue] == NO) {
+            [self refreshDueCount];
+        }
+    } else if (context == OFHiddenContext) {
+        if ([(NSNumber *)[object valueForKey:@"hidden"] boolValue] == YES) {
+            [self refreshDueCount];
+        }
+    } else {
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
 }
 
@@ -436,6 +451,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 }
 
 - (void)applicationDidLaunch:(NSDictionary *)applicationInfo {
+    [self.connectionManager logMessage:@"OmniFocus launched"];
 	if([applicationInfo[@kESDSDKPayloadApplication] isEqualToString:OMNIFOCUS_BUNDLE_ID]) {
 		self.isOmniFocusRunning = YES;
 		
