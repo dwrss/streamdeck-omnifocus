@@ -38,7 +38,7 @@
   "Name": "OmniFocus",
   "Icon": "OmniFocus",
   "URL": "https://github.com/dwrss/streamdeck-omnifocus/", 
-  "Version": "1.2.1",
+  "Version": "1.2.2",
   "OS": [
     {
         "Platform": "mac",
