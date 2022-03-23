@@ -119,12 +119,10 @@
         const language = settings.language;
 
         $SD.api.getGlobalSettings(uuid);
-
-        if (settings.badgeCount) {
-          settings.badgeCount.forEach(function (badgeOption) {
-            document.getElementById(badgeOption).checked = true;
-          });
-        }
+		
+		['overdueCount', 'todayCount', 'flaggedCount'].forEach(function (badgeOption) {
+			document.getElementById(badgeOption).checked = settings.badgeCount?.includes(badgeOption);
+		});
 
         if (settings.perspective) {
           document.getElementById("perspective").value = settings.perspective;
@@ -143,7 +141,7 @@
         badgeCount = [];
         if (document.getElementById("overdueCount").checked) {
           badgeCount.push("overdueCount");
-        }
+        } 
         if (document.getElementById("todayCount").checked) {
           badgeCount.push("todayCount");
         }
