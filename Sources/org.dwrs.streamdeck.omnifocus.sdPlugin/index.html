@@ -89,7 +89,7 @@
         'tags': 'Tags',
         'custom': 'Custom Perspective',
       };
-      const selectedPerspective = settings.perspective ?? Object.keys(defaultPerspectivesList)[0];
+      const selectedPerspective = settings?.perspective ?? Object.keys(defaultPerspectivesList)[0];
       document.getElementById("perspective").innerHTML = Object.keys(defaultPerspectivesList).map((perspectiveChoice, index) => {
         return `<option value="${perspectiveChoice}" ${perspectiveChoice === selectedPerspective ? 'selected' : ''}>${defaultPerspectivesList[perspectiveChoice]}</option>`;
       }).join("\n");
