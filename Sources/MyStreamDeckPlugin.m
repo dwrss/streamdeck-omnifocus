@@ -146,7 +146,7 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 @property (strong) NSMutableArray *knownContexts;
 
 /// The current state for each visible action
-@property (strong) NSMutableDictionary *actionStates;
+@property (strong) NSMutableDictionary<NSString*, NSMutableDictionary<id, NSNumber *>*> *actionStates;
 
 /// AppleScripts for fetching badge count
 @property (strong) NSAppleScript *numberOfDueTasksScript;
@@ -219,6 +219,12 @@ static void *OFHiddenContext = &OFHiddenContext;
 	{
         self.knownContexts = [[NSMutableArray alloc] init];
 	}
+    
+    // Create the dictionary mapping actions to contexts (and then contexts to state)
+    if(self.actionStates == nil)
+    {
+        self.actionStates = [NSMutableDictionary new];
+    }
 	
     // Setup badge count refresh
     [self setupRefresh];
@@ -249,6 +255,10 @@ static void *OFHiddenContext = &OFHiddenContext;
 // MARK: - Refresh all actions
 
 - (void)refreshDueCount {
+    [self refreshDueCountForced:NO];
+}
+
+- (void)refreshDueCountForced:(BOOL)forced {
     if (!self.isOmniFocusRunning) {
         [self.connectionManager logMessage:@"OmniFocus not running, not refreshing due count"];
         return;
@@ -256,7 +266,7 @@ static void *OFHiddenContext = &OFHiddenContext;
     
     NSDate *now = [[NSDate alloc] init];
     NSTimeInterval timeSinceLastRefresh = [now timeIntervalSince1970] - self.lastRefresh;
-    if (timeSinceLastRefresh < REFRESH_DUE_COUNT_MINIMUM_INTERVAL) {
+    if (forced == NO && timeSinceLastRefresh < REFRESH_DUE_COUNT_MINIMUM_INTERVAL) {
         [self.connectionManager logMessage:[NSString stringWithFormat:@"Not refreshing. Only %.2f since last refresh", timeSinceLastRefresh]];
         return;
     }
@@ -292,13 +302,13 @@ static void *OFHiddenContext = &OFHiddenContext;
         }
         
         if (numberOfDueTasks > 9) {
-            [self setStateToNumber:[NSNumber numberWithInt:2] forAction:ACTID_DUE_TASKS inContext:context];
+            [self setState:OFSDDueTasksStateLong forAction:ACTID_DUE_TASKS inContext:context];
             [self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
         } else if (numberOfDueTasks > 0) {
-            [self setStateToNumber:[NSNumber numberWithInt:1] forAction:ACTID_DUE_TASKS inContext:context];
+            [self setState:OFSDDueTasksStateShort forAction:ACTID_DUE_TASKS inContext:context];
             [self.connectionManager setTitle:[NSString stringWithFormat:@"%d", numberOfDueTasks] withContext:context withTarget:kESDSDKTarget_HardwareAndSoftware];
         } else {
-            [self setStateToNumber:[NSNumber numberWithInt:0] forAction:ACTID_DUE_TASKS inContext:context];
+            [self setState:OFSDDueTasksStateNone forAction:ACTID_DUE_TASKS inContext:context];
             if (numberOfDueTasks != 0) {
                 [self.connectionManager logMessage:[NSString stringWithFormat:@"Unexpected number of tasks: %d", numberOfDueTasks]];
                 [self.connectionManager showAlertForContext:context];
@@ -313,23 +323,25 @@ static void *OFHiddenContext = &OFHiddenContext;
 /**
  Updates the action state in the Stream Deck software and our local store.
  
- @param number The number identifying the new state.
+ @param state The state for this action and context.
  @param key The action to which this state relates.
  @param context The Stream Deck context.
  */
-- (void)setStateToNumber:(NSNumber * _Nonnull)number forAction:(NSString *)key inContext:(NSString *)context {
-    NSNumber *currentState = [self.actionStates objectForKey:ACTID_DUE_TASKS];
-    // No need to update when the new state matches out local state
-    if (currentState && [currentState intValue] == [number intValue]) {
+- (void)setState:(OFSDDueTasksState)state forAction:(NSString *)key inContext:(NSString *)context {
+    NSNumber *stateNumber = [NSNumber numberWithInteger: state];
+    NSMutableDictionary *actionContexts = [self.actionStates objectForKey:key];
+    NSNumber *currentState = [actionContexts objectForKey:context];
+    // No need to update when the new state matches our local state
+    if (currentState && [currentState isEqualToNumber:stateNumber]) {
         return;
     }
     NSError *error = nil;
-    BOOL success = [self.connectionManager setState:number forContext:context error:&error];
+    BOOL success = [self.connectionManager setState:stateNumber forContext:context error:&error];
     if (!success) {
         [self.connectionManager logMessage:[NSString stringWithFormat:@"Error setting state: '%@'", error]];
         return;
     }
-    [self storeStateNumber:number forAction:key];
+    [self storeStateNumber:stateNumber forAction:key withContext:context];
 }
 
 /**
@@ -338,9 +350,17 @@ static void *OFHiddenContext = &OFHiddenContext;
  @param stateNumber The number identifying the new state.
  @param action The action to which this state relates.
  */
-- (void)storeStateNumber:(nullable NSNumber *)stateNumber forAction:(NSString *)action {
+- (void)storeStateNumber:(nullable NSNumber *)stateNumber forAction:(NSString *)action withContext:(NSString *)context {
+    NSLog(@"Action state: %@", stateNumber);
     if (stateNumber != nil) {
-        [self.actionStates setObject:stateNumber forKey:action];
+        NSMutableDictionary<id, NSNumber *> *actionContexts = [self.actionStates objectForKey:action];
+        NSLog(@"Action contexts: %@", actionContexts);
+        if (actionContexts == nil) {
+            actionContexts = [NSMutableDictionary new];
+        }
+        actionContexts[context] = stateNumber;
+        NSLog(@"Action contexts: %@", actionContexts);
+        [self.actionStates setObject:actionContexts forKey:action];
     } else {
         // If we weren't passed a state, make sure we don't have an invalid one lying around
         [self.actionStates removeObjectForKey:action];
@@ -394,9 +414,24 @@ static void *OFHiddenContext = &OFHiddenContext;
 
 - (void)keyUpForAction:(NSString *)action withContext:(id)context withPayload:(NSDictionary *)payload forDevice:(NSString *)deviceID
 {
-    // Pressing the button changes the state, so we update our local storage
-    NSNumber *state = (NSNumber *)[payload objectForKey:@kESDSDKPayloadState];
-    [self storeStateNumber:state forAction:action];
+    // Pressing the button changes the state, so need to revert (because we use state to set image size)
+    NSNumber *currentState = [[self.actionStates objectForKey:action] objectForKey:context];
+    BOOL revertSuccess = NO;
+    if (currentState != nil) {
+        NSLog(@"Action state: %@", currentState);
+        NSError *error = nil;
+        revertSuccess = [self.connectionManager setState:currentState forContext:context error:&error];
+        if (!revertSuccess) {
+            [self.connectionManager logMessage:[NSString stringWithFormat:@"Error reverting state change: '%@'", error]];
+        }
+    } else {
+        [self.connectionManager logMessage:[NSString stringWithFormat:@"%@ and %@ not found in %@", action, context, self.actionStates]];
+    }
+    if (!revertSuccess) {
+        // We failed to revert the state change, so we might as well make sure our local storage matches
+        NSNumber *state = (NSNumber *)[payload objectForKey:@kESDSDKPayloadState];
+        [self storeStateNumber:state forAction:action withContext:context];
+    }
     
     if ([action isEqualToString:ACTID_DUE_TASKS]) {
         // Make sure the due count is up-to-date
@@ -416,7 +451,7 @@ static void *OFHiddenContext = &OFHiddenContext;
     
     // Ensure our action state is up-to-date
     NSNumber *state = (NSNumber *)[payload objectForKey:@kESDSDKPayloadState];
-    [self storeStateNumber:state forAction:action];
+    [self storeStateNumber:state forAction:action withContext:context];
 	
     if ([action isEqualToString:ACTID_DUE_TASKS]) {
         // Explicitely refresh the number of due tasks
@@ -472,7 +507,7 @@ static void *OFHiddenContext = &OFHiddenContext;
 
 - (void) didReceiveSettingsForAction:(NSString *)action withContext:(id)context withPayload:(NSDictionary *)payload forDevice:(NSString *)deviceID {
     [self saveSettingsFromPayload:payload forContext:context];
-    [self refreshDueCount];
+    [self refreshDueCountForced:YES];
 }
 
 - (void) didReceiveGlobalSettings:(NSDictionary *)payload {
