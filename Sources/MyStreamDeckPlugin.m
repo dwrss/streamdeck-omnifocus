@@ -272,15 +272,15 @@ static void *OFHiddenContext = &OFHiddenContext;
     }
     self.lastRefresh = [[[NSDate alloc] init] timeIntervalSince1970];
 	
-	int numberOfDueTasks = -1;
-	
 	// Update each known context with the new value
 	for (NSString *context in self.knownContexts) {
+        int numberOfDueTasks = -1;
         // Execute the Applescripts to retrieve the number of due tasks
         NSMutableDictionary *settingsPayload = [self.settingsForContext objectForKey:context];
         NSSet *badgeCountSources = settingsPayload[@kOFSDSettingBadgeCount];
-        if (badgeCountSources == nil) {
+        if (badgeCountSources == nil || badgeCountSources.count == 0 ) {
             [self.connectionManager logMessage:@"No sources for badge count"];
+            numberOfDueTasks = 0;
         }
         if ([badgeCountSources containsObject:@kOFSDSettingBadgeCountFromOverdue]) {
             if (self.numberOfOverdueTasksScript == nil) {
