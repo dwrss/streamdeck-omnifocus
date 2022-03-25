@@ -221,7 +221,7 @@ static void *OFHiddenContext = &OFHiddenContext;
 	}
     
     // Create the dictionary mapping actions to contexts (and then contexts to state)
-    if(self.actionStates == nil)
+    if (self.actionStates == nil)
     {
         self.actionStates = [NSMutableDictionary new];
     }
