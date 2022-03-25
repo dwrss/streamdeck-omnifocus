@@ -351,15 +351,12 @@ static void *OFHiddenContext = &OFHiddenContext;
  @param action The action to which this state relates.
  */
 - (void)storeStateNumber:(nullable NSNumber *)stateNumber forAction:(NSString *)action withContext:(NSString *)context {
-    NSLog(@"Action state: %@", stateNumber);
     if (stateNumber != nil) {
         NSMutableDictionary<id, NSNumber *> *actionContexts = [self.actionStates objectForKey:action];
-        NSLog(@"Action contexts: %@", actionContexts);
         if (actionContexts == nil) {
             actionContexts = [NSMutableDictionary new];
         }
         actionContexts[context] = stateNumber;
-        NSLog(@"Action contexts: %@", actionContexts);
         [self.actionStates setObject:actionContexts forKey:action];
     } else {
         // If we weren't passed a state, make sure we don't have an invalid one lying around
