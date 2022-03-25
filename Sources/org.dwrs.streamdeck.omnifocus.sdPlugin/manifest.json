@@ -37,8 +37,8 @@
   "Description": "See how many due tasks you have.",
   "Name": "OmniFocus",
   "Icon": "OmniFocus",
-  "URL": "https://github.com/dwrss/streamdeck-omnifocus/", 
-  "Version": "1.2.2",
+  "URL": "https://github.com/dwrss/streamdeck-omnifocus/",
+  "Version": "1.2.3",
   "OS": [
     {
         "Platform": "mac",
