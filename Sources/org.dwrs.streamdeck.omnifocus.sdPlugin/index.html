@@ -61,6 +61,7 @@
       </div>
     </div>
     <script src="common.js"></script>
+    <script src="constants.js"></script>
     <script>
       const badgeOptionsList = {'overdueCount': "Overdue", 'todayCount': "Due Today", 'flaggedCount': "Flagged"};
       document.getElementById("badgeSettings").innerHTML = Object.keys(badgeOptionsList).map(badgeOption => {
@@ -94,7 +95,7 @@
         return `<option value="${perspectiveChoice}" ${perspectiveChoice === selectedPerspective ? 'selected' : ''}>${defaultPerspectivesList[perspectiveChoice]}</option>`;
       }).join("\n");
 
-      var uuid, actionInfo, settings, globalSettings, ctx;
+      var uuid, actionInfo, settings, globalSettings, ctx, customPerspectives;
 
       $SD.on("connected", (jsonObj) => {
         connected(jsonObj);
@@ -105,6 +106,13 @@
           document.getElementById("refreshInterval").value =
             globalSettings.refreshInterval;
         }
+      });
+      $SD.on("sendToPropertyInspector", (jsonObj) => {
+      	const payload = jsonObj.payload;
+      	switch (payload.eventType) {
+      		case EVENT_TYPES.PERSPECTIVE_LIST:
+      			customPerspectives = payload.perspectives;
+      	}
       });
 
       function connected(jsonObj) {

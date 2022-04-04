@@ -33,6 +33,10 @@ static NSString * GetResourcePath(NSString *inFilename)
 
 // MARK: - MyStreamDeckPlugin (Scripting)
 
+@interface MyStreamDeckPlugin()
+@property (strong) NSAppleScript *perspectivesListScript;
+@end
+
 @implementation MyStreamDeckPlugin (Scripting)
 
 /**
@@ -79,6 +83,31 @@ static NSString * GetResourcePath(NSString *inFilename)
     } else {
         *number += numberOfTasks;
     }
+}
+
+- (nullable NSArray<NSString *> *)getPerspectiveList {
+    if (self.perspectivesListScript == nil) {
+        self.perspectivesListScript = [self setupScriptWithName:@"PerspectivesList"];
+    }
+    NSDictionary *errors = nil;
+    NSAppleEventDescriptor *eventDescriptor = [self.perspectivesListScript executeAndReturnError:&errors];
+    if (eventDescriptor != nil && [eventDescriptor descriptorType] != kAENullEvent) {
+        if (eventDescriptor.descriptorType != typeAEList) {
+            [self.connectionManager logMessage:[NSString stringWithFormat:@"Perspectives response not a list. Value: %@", eventDescriptor.stringValue]];
+            return nil;
+        }
+        NSInteger perspectiveCount = [eventDescriptor numberOfItems];
+//        [self.connectionManager logMessage:[NSString stringWithFormat:@"Found %@",errors]]]
+        NSMutableArray<NSString *> *perspectiveArray = [[NSMutableArray alloc] initWithCapacity:perspectiveCount];
+        for (int i = 1; i<=perspectiveCount; i++) {
+            NSAppleEventDescriptor *entryDescriptor = [eventDescriptor descriptorAtIndex:i];
+            [perspectiveArray addObject:entryDescriptor.stringValue];
+        }
+        return perspectiveArray;
+    } else {
+        [self.connectionManager logMessage:[NSString stringWithFormat:@"Error running script: %@",errors]];
+    }
+    return nil;
 }
 
 @end

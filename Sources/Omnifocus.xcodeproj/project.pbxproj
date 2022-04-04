@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6378C5C4270875A300E208BE /* MyStreamDeckPlugin+Scripting.m in Sources */ = {isa = PBXBuildFile; fileRef = 6378C5C32708759D00E208BE /* MyStreamDeckPlugin+Scripting.m */; };
+		637D843527ECB4C5003B4B83 /* MyStreamDeckPlugin+EventSending.m in Sources */ = {isa = PBXBuildFile; fileRef = 63729B6A27ECB31100E38998 /* MyStreamDeckPlugin+EventSending.m */; };
 		FA29E473215E7D2300C9F60C /* ESDConnectionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = FA29E46E215E7D2300C9F60C /* ESDConnectionManager.m */; };
 		FA29E474215E7D2300C9F60C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = FA29E46F215E7D2300C9F60C /* main.m */; };
 		FA80591421623A0D00ED7E12 /* ESDUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = FA80591321623A0D00ED7E12 /* ESDUtilities.m */; };
@@ -48,6 +49,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		63729B6927ECB31100E38998 /* MyStreamDeckPlugin+EventSending.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MyStreamDeckPlugin+EventSending.h"; sourceTree = "<group>"; };
+		63729B6A27ECB31100E38998 /* MyStreamDeckPlugin+EventSending.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "MyStreamDeckPlugin+EventSending.m"; sourceTree = "<group>"; };
 		6378C5C22708759D00E208BE /* MyStreamDeckPlugin+Scripting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MyStreamDeckPlugin+Scripting.h"; sourceTree = "<group>"; };
 		6378C5C32708759D00E208BE /* MyStreamDeckPlugin+Scripting.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "MyStreamDeckPlugin+Scripting.m"; sourceTree = "<group>"; };
 		63A7671127046277000EA8C8 /* OFSDDefines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OFSDDefines.h; sourceTree = "<group>"; };
@@ -127,6 +130,8 @@
 				FACCC865211AC281008C87BD /* MyStreamDeckPlugin.m */,
 				6378C5C22708759D00E208BE /* MyStreamDeckPlugin+Scripting.h */,
 				6378C5C32708759D00E208BE /* MyStreamDeckPlugin+Scripting.m */,
+				63729B6927ECB31100E38998 /* MyStreamDeckPlugin+EventSending.h */,
+				63729B6A27ECB31100E38998 /* MyStreamDeckPlugin+EventSending.m */,
 				63A7671127046277000EA8C8 /* OFSDDefines.h */,
 				FA29E46D215E7D2300C9F60C /* Common */,
 				FAC7C7E42122CE1D000262E7 /* SocketRocket */,
@@ -359,6 +364,7 @@
 				FAC7C81A2122CE1D000262E7 /* SRProxyConnect.m in Sources */,
 				FAC7C81C2122CE1D000262E7 /* SRPinningSecurityPolicy.m in Sources */,
 				FA29E474215E7D2300C9F60C /* main.m in Sources */,
+				637D843527ECB4C5003B4B83 /* MyStreamDeckPlugin+EventSending.m in Sources */,
 				6378C5C4270875A300E208BE /* MyStreamDeckPlugin+Scripting.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -24,6 +24,7 @@
 #import <AppKit/AppKit.h>
 #import "OFSDDefines.h"
 #import "MyStreamDeckPlugin+Scripting.h"
+#import "MyStreamDeckPlugin+EventSending.h"
 
 
 // Refresh the unread count every 60s
@@ -154,6 +155,8 @@ static NSString * CreateBase64EncodedString(NSString *inImagePath)
 @property (strong) NSAppleScript *numberOfOverdueTasksScript;
 
 @property (strong) NSAppleScript *numberOfFlaggedTasksScript;
+
+@property (strong) NSAppleScript *perspectivesListScript;
 
 /// Settings for each context (instance of the button)
 @property (strong) NSMutableDictionary *settingsForContext;
@@ -433,6 +436,7 @@ static void *OFHiddenContext = &OFHiddenContext;
     if ([action isEqualToString:ACTID_DUE_TASKS]) {
         // Make sure the due count is up-to-date
         [self refreshDueCount];
+        [self sendPerspectiveListForAction:action withContext:context];
     }
 }
 
@@ -453,6 +457,7 @@ static void *OFHiddenContext = &OFHiddenContext;
     if ([action isEqualToString:ACTID_DUE_TASKS]) {
         // Explicitely refresh the number of due tasks
         [self refreshDueCount];
+        [self sendPerspectiveListForAction:action withContext:context];
     }
 }
 

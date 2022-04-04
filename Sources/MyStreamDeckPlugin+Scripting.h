@@ -15,6 +15,7 @@
 - (NSAppleScript *_Nullable)setupScriptWithName:(NSString * _Nonnull)name;
 NS_ASSUME_NONNULL_BEGIN
 - (void)numberDue:(int*)number fromScript:(NSAppleScript *) script;
+- (nullable NSArray<NSString *> *)getPerspectiveList;
 NS_ASSUME_NONNULL_END
 
 @end

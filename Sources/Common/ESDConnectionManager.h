@@ -34,6 +34,10 @@ NS_ASSUME_NONNULL_BEGIN
 -(void)showOKForContext:(id)inContext;
 -(void)setSettings:(NSDictionary *)inSettings forContext:(id)inContext;
 -(BOOL)setState:(NSNumber * _Nonnull)inState forContext:(id _Nonnull)inContext error:(NSError **)errorPtr;
+-(BOOL)sendToPropertyInspectorWithPayload:(NSDictionary * _Nonnull)inPayload
+                                forAction:(NSString * _Nonnull)inAction
+                              withContext:(id _Nonnull)inContext
+                                    error:(NSError **)errorPtr;
 -(void)logMessage:(NSString *)inMessage;
 
 @end

@@ -258,6 +258,45 @@
     return YES;
 }
 
+-(BOOL)sendToPropertyInspectorWithPayload:(NSDictionary * _Nonnull)inPayload
+                                forAction:(NSString * _Nonnull)inAction
+                              withContext:(id _Nonnull)inContext
+                                    error:(NSError **)errorPtr
+{
+    if(inPayload == nil) {
+        [NSException raise:NSInvalidArgumentException format:@"inPayload must not be nil"];
+    }
+    if(inContext == nil) {
+        [NSException raise:NSInvalidArgumentException format:@"inContext must not be nil"];
+    }
+    
+    if(inAction == nil) {
+        [NSException raise:NSInvalidArgumentException format:@"inAction must not be nil"];
+    }
+    NSDictionary *json = @{
+        @kESDSDKCommonEvent: @kESDSDKEventSendToPropertyInspector,
+        @kESDSDKCommonContext: inContext,
+        @kESDSDKCommonAction: inAction,
+        @kESDSDKCommonPayload: inPayload
+    };
+    
+    NSError *err = nil;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:json options:NSJSONWritingPrettyPrinted error:&err];
+    if (err != nil) {
+        *errorPtr = err;
+        return NO;
+    }
+    NSError *error = nil;
+    [self.socket sendData:jsonData error:&error];
+    if(error != nil)
+    {
+        NSLog(@"Failed to change the state due to error %@", error);
+        *errorPtr = error;
+        return NO;
+    }
+    return YES;
+}
+
 -(void)logMessage:(NSString *)inMessage
 {
 	if([inMessage length] > 0)
@@ -376,9 +415,9 @@
             }
         }
 	}
-	@catch(...)
+	@catch(NSException *exception)
 	{
-		NSLog(@"Failed to parse the JSON data: %@", message);
+		NSLog(@"Failed to parse the JSON data: %@. Reason: %@. Stack: %@", message, exception.reason, exception.callStackSymbols);
 	}
 }
 
