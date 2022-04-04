@@ -97,7 +97,6 @@ static NSString * GetResourcePath(NSString *inFilename)
             return nil;
         }
         NSInteger perspectiveCount = [eventDescriptor numberOfItems];
-//        [self.connectionManager logMessage:[NSString stringWithFormat:@"Found %@",errors]]]
         NSMutableArray<NSString *> *perspectiveArray = [[NSMutableArray alloc] initWithCapacity:perspectiveCount];
         for (int i = 1; i<=perspectiveCount; i++) {
             NSAppleEventDescriptor *entryDescriptor = [eventDescriptor descriptorAtIndex:i];
