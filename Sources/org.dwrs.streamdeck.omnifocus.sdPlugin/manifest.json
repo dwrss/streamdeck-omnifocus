@@ -3,6 +3,7 @@
     {
       "Icon": "OmniFocus",
       "Name": "OmniFocus",
+      "UserTitleEnabled": false,
       "States": [
         {
           "Image": "OmniFocus",
