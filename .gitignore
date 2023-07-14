@@ -1,3 +1,4 @@
 .DS_Store
 Sources/Omnifocus.xcodeproj/project.xcworkspace/xcuserdata
 Release/org.dwrs.streamdeck.omnifocus.streamDeckPlugin
+DistributionTool
